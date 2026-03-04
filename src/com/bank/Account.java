@@ -5,8 +5,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Account {
+    private String accountHolder;
     private double balance;
-    private List<String> txnHistory = new ArrayList<>();
+    private List<String> txnHistory;
+
+    public Account (final String accountHolder, final double balance) {
+        this.accountHolder = accountHolder;
+        this.balance = balance;
+        txnHistory = new ArrayList<>();
+        txnHistory.add(balance + " credited on " + LocalDateTime.now());
+    }
 
     public void getBalance() {
         System.out.println("You have " + balance + " in your account.");
