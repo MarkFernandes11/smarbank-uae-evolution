@@ -9,6 +9,12 @@ public class Account {
     private double balance;
     private List<String> txnHistory;
 
+    /**
+     * Constructor to initialize a account based on the name and starting amount
+     *
+     * @param accountHolder Name of the account holder
+     * @param balance Amount to be added to the balance
+     */
     public Account (final String accountHolder, final double balance) {
         this.accountHolder = accountHolder;
         this.balance = balance;
@@ -16,10 +22,18 @@ public class Account {
         txnHistory.add(balance + " credited on " + LocalDateTime.now());
     }
 
+    /**
+     * Fetches the balance in the account.
+     */
     public void getBalance() {
         System.out.println("You have " + balance + " in your account.");
     }
 
+    /**
+     * Adds money to the account if the amount is positive
+     *
+     * @param money the amount to be added
+     */
     public void addMoney(double money) {
         if (money > 0) {
             balance += money;
@@ -30,6 +44,11 @@ public class Account {
         }
     }
 
+    /**
+     * Withdraws money from the account if withdrawal possible
+     *
+     * @param money amount to be withdrawn
+     */
     public void withdrawMoney(double money) {
         if (money > 0) {
             if (balance - money > 0) {
@@ -44,6 +63,9 @@ public class Account {
         }
     }
 
+    /**
+     * Fetches the transaction history for the account holder
+     */
     public void getTransactionHistory() {
         if (txnHistory.isEmpty()) {
             System.out.println("No transactions to be displayed");

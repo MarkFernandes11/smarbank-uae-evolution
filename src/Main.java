@@ -31,6 +31,11 @@ public class Main {
         SCANNER.close();
     }
 
+    /**
+     * Menu options for the account holder
+     *
+     * @param account The account on which operations will be performed
+     */
     private static void getWalletMenu(Account account) {
         boolean exit = false;
         while (!exit) {
@@ -67,17 +72,18 @@ public class Main {
     }
 
     private static int getOption() {
-        boolean runLoop = true;
-        int option = 0;
-        while (runLoop) {
+        System.out.println("Choose an option");
+        int option;
+
+        while (!SCANNER.hasNextInt()) {
+            System.out.println("Invalid input");
+            SCANNER.next(); // Discarding invalid input
             System.out.println("Choose an option");
-            try {
-                option = Integer.parseInt(SCANNER.nextLine());
-                runLoop = false;
-            } catch (Exception ex) {
-                System.out.println("Invalid input");
-            }
         }
+
+        option = SCANNER.nextInt();
+        SCANNER.nextLine();
+
         return option;
     }
 
