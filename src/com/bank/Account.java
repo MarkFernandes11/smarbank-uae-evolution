@@ -1,5 +1,7 @@
 package com.bank;
 
+import com.bank.exceptions.InsufficientBalanceException;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,14 +51,14 @@ public class Account {
      *
      * @param money amount to be withdrawn
      */
-    public void withdrawMoney(double money) {
+    public void withdrawMoney(double money) throws InsufficientBalanceException {
         if (money > 0) {
             if (balance - money > 0) {
                 balance -= money;
                 System.out.println(money + " withdrawn from your account.");
                 txnHistory.add(money + " withdrawn on " + LocalDateTime.now());
             } else {
-                System.out.println("You do not have sufficient funds to withdraw.");
+                throw new InsufficientBalanceException("Insufficient balance in your account. Available balance is " + balance);
             }
         } else {
             System.out.println("Invalid input");

@@ -59,7 +59,11 @@ public class Main {
                 case 3:
                     System.out.println("Enter amount you want to withdraw");
                     double amt2 = Double.parseDouble(SCANNER.nextLine());
-                    account.withdrawMoney(amt2);
+                    try {
+                        account.withdrawMoney(amt2);
+                    } catch (Exception ex) {
+                        System.out.println("Error : " + ex.getMessage());
+                    }
                     break;
                 case 4:
                     account.getTransactionHistory();
@@ -89,19 +93,23 @@ public class Main {
 
     private static double getAmount() {
         boolean runLoop = true;
+        System.out.println("Enter a amount to deposit in your account");
         double amount = 0;
+
         while (runLoop) {
-            System.out.println("Enter a amount to deposit in your account");
-            try {
-                amount = Double.parseDouble(SCANNER.nextLine());
-                if (amount < 0) {
-                    System.out.println("Enter a positive amount");
-                    runLoop = true;
-                } else {
-                    runLoop = false;
-                }
-            } catch (Exception ex) {
+            while (!SCANNER.hasNextDouble()) {
                 System.out.println("Invalid amount entered");
+                SCANNER.next();
+                System.out.println("Enter a amount to deposit in your account");
+            }
+
+            amount = SCANNER.nextDouble();
+            SCANNER.nextLine();
+
+            if (amount > 0) {
+                runLoop = false;
+            } else {
+                System.out.println("Amount cannot be less than 0, enter a positive amount.");
             }
         }
         return amount;
