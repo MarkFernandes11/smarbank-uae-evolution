@@ -1,4 +1,4 @@
-package com.bank;
+package com.bank.models;
 
 import com.bank.exceptions.InsufficientBalanceException;
 
@@ -9,7 +9,7 @@ import java.util.List;
 public class Account {
     private String accountHolder;
     private double balance;
-    private List<String> txnHistory;
+    private List<Transaction> txnHistory;
 
     /**
      * Constructor to initialize a account based on the name and starting amount
@@ -21,14 +21,14 @@ public class Account {
         this.accountHolder = accountHolder;
         this.balance = balance;
         txnHistory = new ArrayList<>();
-        txnHistory.add(balance + " credited on " + LocalDateTime.now());
+        txnHistory.add(new Transaction(balance, "CREDITED", LocalDateTime.now()));
     }
 
     /**
-     * Fetches the balance in the account.
+     * Returns the balance in the account.
      */
-    public void getBalance() {
-        System.out.println("You have " + balance + " in your account.");
+    public double getBalance() {
+        return balance;
     }
 
     /**
@@ -40,7 +40,7 @@ public class Account {
         if (money > 0) {
             balance += money;
             System.out.println(money + " added to your account.");
-            txnHistory.add(money + " credited on " + LocalDateTime.now());
+            txnHistory.add(new Transaction(money, "CREDITED", LocalDateTime.now()));
         } else {
             System.out.println("Invalid input");
         }
@@ -53,10 +53,10 @@ public class Account {
      */
     public void withdrawMoney(double money) throws InsufficientBalanceException {
         if (money > 0) {
-            if (balance - money > 0) {
+            if ((balance - money) >= 0) {
                 balance -= money;
                 System.out.println(money + " withdrawn from your account.");
-                txnHistory.add(money + " withdrawn on " + LocalDateTime.now());
+                txnHistory.add(new Transaction(money, "DEBITED", LocalDateTime.now()));
             } else {
                 throw new InsufficientBalanceException("Insufficient balance in your account. Available balance is " + balance);
             }

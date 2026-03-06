@@ -8,3 +8,6 @@ Phase 1 :
 - Creating a CLI application that will be able to initialize an account, deposit, withdraw, get transaction history and check balance from the Wallet.
 - Exception handled in case of insufficient balance.
 - Input values handled in scanner to select a menu option or to enter amount.
+- Added options in account menu to maintain multiple accounts, login to an account and list all accounts.
+- Created a wallet service and moved all accounts related logic to it.
+- Used a transaction record instead of a string to maintain transactions.

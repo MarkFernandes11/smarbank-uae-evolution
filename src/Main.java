@@ -1,25 +1,54 @@
-import com.bank.Account;
+import com.bank.models.Account;
+import com.bank.exceptions.AccountAlreadyExistsException;
+import com.bank.services.WalletService;
 
 import java.util.Scanner;
 
 public class Main {
     private static final Scanner SCANNER = new Scanner(System.in);
+
     public static void main(String[] args) {
         boolean exit = false;
+        WalletService service = new WalletService();
+        String name;
 
         System.out.println("Welcome to CLI Wallet!");
         while (!exit) {
-            System.out.println("1. Create Account");
-            System.out.println("2. Exit");
+            System.out.println("1. Create New Account");
+            System.out.println("2. Login (Select Existing Account)");
+            System.out.println("3. List All Accounts");
+            System.out.println("4. Exit");
             int option = Main.getOption();
 
             switch (option) {
                 case 1:
                     System.out.println("Enter account holder's name");
-                    String name = SCANNER.nextLine();
+                    name = SCANNER.nextLine();
+                    if (service.checkAccountExists(name)) {
+                        try {
+                            throw new AccountAlreadyExistsException("User already exists with name " + name);
+                        } catch (Exception ex) {
+                            printError(ex.getMessage());
+                            break;
+                        }
+                    }
                     double amount = Main.getAmount();
-                    Account account = new Account(name, amount);
+                    Main.getWalletMenu(service.createAccount(name, amount));
+                    break;
+                case 2:
+                    System.out.println("Enter account holder's name");
+                    name = SCANNER.nextLine();
+                    Account account = null;
+                    try {
+                        account = service.fetchAccount(name);
+                    } catch (Exception ex) {
+                        printError(ex.getMessage());
+                        break;
+                    }
                     Main.getWalletMenu(account);
+                    break;
+                case 3:
+                    service.fetchAccountHolders();
                     break;
                 default:
                     exit = true;
@@ -29,6 +58,10 @@ public class Main {
         System.out.println("Exiting wallet");
 
         SCANNER.close();
+    }
+
+    private static void printError(String message) {
+        System.out.println("Error: " + message);
     }
 
     /**
@@ -49,7 +82,8 @@ public class Main {
 
             switch (option) {
                 case 1:
-                    account.getBalance();
+                    double balance = account.getBalance();
+                    System.out.println("You have " + balance + " in your account.");
                     break;
                 case 2:
                     System.out.println("Enter amount you want to add");
@@ -62,7 +96,7 @@ public class Main {
                     try {
                         account.withdrawMoney(amt2);
                     } catch (Exception ex) {
-                        System.out.println("Error : " + ex.getMessage());
+                        printError(ex.getMessage());
                     }
                     break;
                 case 4:
