@@ -58,7 +58,6 @@ public class WalletService {
      * @param account Source account holder
      * @param targetAccount Target account holder to transfer to
      * @param amount Amount to be transferred
-     * @throws AccountNotFoundException Thrown when account not found with provided name
      * @throws SelfTransferException Thrown when trying to transfer to self
      * @throws InsufficientBalanceException Thrown when balance is insufficient
      */
