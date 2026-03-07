@@ -1,5 +1,11 @@
+import com.bank.services.WalletService;
+import com.bank.ui.MenuHandler;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Welcome To Smartbank!");
+        WalletService service = new WalletService();
+        MenuHandler menuHandler = new MenuHandler();
+        menuHandler.run(service);
     }
+
 }
