@@ -21,13 +21,15 @@ public class IConstant {
     // Exception messages
     public static final String ACCOUNT_ALREADY_EXISTS = "Account already exists with name %s";
     public static final String ACCOUNT_NOT_FOUND = "Account not found with name %s";
-    public static final String INSUFFICIENT_BALANCE = "Insufficient balance in your account. Available balance is %0.2f";
+    public static final String INSUFFICIENT_BALANCE = "Insufficient balance in your account. Available balance is %.2f";
+    public static final String SELF_TRANSFER_ERROR = "Self transfer not supported";
 
     // General messages
     public static final String ACCOUNTS_NOT_CREATED = "No accounts created";
-    public static final String ACCOUNT_BALANCE = "You have %0.2f in your account";
-    public static final String ADD_SUCCESS = "%0.2f added to your account.";
-    public static final String WITHDRAW_SUCCESS = "%0.2f withdrawn from your account";
+    public static final String ACCOUNT_BALANCE = "You have %.2f in your account";
+    public static final String ADD_SUCCESS = "%.2f added to your account.";
+    public static final String WITHDRAW_SUCCESS = "%.2f withdrawn from your account";
     public static final String NO_TRANSACTIONS = "No transactions to be displayed";
+    public static final String TRANSFER_SUCCESS = "Funds transferred successfully";
 
 }

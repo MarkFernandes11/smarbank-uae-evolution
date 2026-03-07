@@ -100,6 +100,7 @@ public class MenuHandler {
                     amount = getAmount(IConstant.ENTER_TRANSFER_AMOUNT);
                     try {
                         account.transferFunds(account, transferTo, amount);
+                        PrintData.print(IConstant.TRANSFER_SUCCESS);
                     } catch (Exception ex) {
                         PrintData.printError(ex.getMessage());
                     }
@@ -114,6 +115,10 @@ public class MenuHandler {
         }
     }
 
+    /**
+     * Method to select an option
+     * @return A valid number for menu
+     */
     private static int getOption() {
         PrintData.print(IConstant.CHOOSE_AN_OPTION);
         int option;
@@ -127,6 +132,11 @@ public class MenuHandler {
         return option;
     }
 
+    /**
+     * Method returns a positive amount and handles negative scenarios
+     * @param message Message to be displayed in console
+     * @return Returns amount
+     */
     private static double getAmount(String message) {
         boolean runLoop = true;
         PrintData.print(message);

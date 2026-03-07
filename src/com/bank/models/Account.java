@@ -50,10 +50,13 @@ public class Account {
      * Adds money to the account if the amount is positive
      *
      * @param money the amount to be added
+     * @param transfer Whether it is a transfer request or not
      */
     public void addMoney(double money, boolean transfer) {
         balance += money;
-        txnHistory.add(new Transaction(money, "CREDITED", LocalDateTime.now()));
+        if (!transfer) {
+            txnHistory.add(new Transaction(money, "CREDITED", LocalDateTime.now()));
+        }
     }
 
     /**
@@ -72,21 +75,27 @@ public class Account {
         }
     }
 
+    /**
+     * Service to transfer funds from one account holder to another
+     * @param account Source account holder
+     * @param transferTo Name of the account holder to transfer to
+     * @param amount Amount to be transferred
+     * @throws AccountNotFoundException Thrown when account not found with provided name
+     * @throws SelfTransferException Thrown when trying to transfer to self
+     * @throws InsufficientBalanceException Thrown when balance is insufficient
+     */
     public void transferFunds(final Account account, final String transferTo, final double amount) throws AccountNotFoundException,
             SelfTransferException, InsufficientBalanceException {
-        // Need to implement this method
-        // 1. check if user exists if not throw error
         Account targetAccount = service.fetchAccount(transferTo);
-        // 2. If user exists then check if same user or not
+
         if (account.getAccountHolder().equals(targetAccount.getAccountHolder())) {
-            throw new SelfTransferException("Self transfer not supported");
+            throw new SelfTransferException(IConstant.SELF_TRANSFER_ERROR);
         }
-        // 3. If all well then withdraw from source account and check if withdrawal is valid or not
+
         withdrawMoney(amount, true);
-        // 4. If withdrawal valid from source then deposit to target account
-        targetAccount.addMoney(amount, true);
-        // 5. Need to update transactions history with new message instead of normal credit debit message
         account.getTransactionHistory().add(new Transaction(amount, "Sent to " + transferTo, LocalDateTime.now()));
+
+        targetAccount.addMoney(amount, true);
         targetAccount.getTransactionHistory().add(new Transaction(amount, "Received from " + account.getAccountHolder(), LocalDateTime.now()));
     }
 
