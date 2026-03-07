@@ -146,7 +146,7 @@ public class MenuHandler {
         while (runLoop) {
             while (!SCANNER.hasNextDouble()) {
                 PrintData.print(IConstant.INVALID_AMOUNT);
-                SCANNER.next();
+                SCANNER.next(); // Discarding invalid input
                 PrintData.print(message);
             }
 
