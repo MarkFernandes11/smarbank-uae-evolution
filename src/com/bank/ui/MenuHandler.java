@@ -30,14 +30,14 @@ public class MenuHandler {
                     name = SCANNER.nextLine();
                     if (service.checkAccountExists(name)) {
                         try {
-                            throw new AccountAlreadyExistsException(IConstant.ACCOUNT_ALREADY_EXISTS);
+                            throw new AccountAlreadyExistsException(String.format(IConstant.ACCOUNT_ALREADY_EXISTS, name));
                         } catch (Exception ex) {
                             PrintData.printError(ex.getMessage());
                             break;
                         }
                     }
                     double amount = getAmount(IConstant.ENTER_DEPOSIT);
-                    getWalletMenu(service.createAccount(name, amount));
+                    getWalletMenu(service.createAccount(name, amount), service);
                     break;
                 case 2:
                     PrintData.print(IConstant.ENTER_NAME);
@@ -49,7 +49,7 @@ public class MenuHandler {
                         PrintData.printError(ex.getMessage());
                         break;
                     }
-                    getWalletMenu(account);
+                    getWalletMenu(account, service);
                     break;
                 case 3:
                     PrintData.printAccountHolders(service.fetchAccountHolders());
@@ -68,7 +68,7 @@ public class MenuHandler {
      *
      * @param account The account on which operations will be performed
      */
-    private static void getWalletMenu(Account account) {
+    private static void getWalletMenu(Account account, WalletService service) {
         boolean exit = false;
         while (!exit) {
             PrintData.displayWalletMenu();
@@ -97,9 +97,10 @@ public class MenuHandler {
                 case 4:
                     PrintData.print(IConstant.TRANSFER_FUNDS_TO);
                     String transferTo = SCANNER.nextLine();
-                    amount = getAmount(IConstant.ENTER_TRANSFER_AMOUNT);
                     try {
-                        account.transferFunds(account, transferTo, amount);
+                        Account targetAccount = service.fetchAccount(transferTo);
+                        amount = getAmount(IConstant.ENTER_TRANSFER_AMOUNT);
+                        service.transferFunds(account, targetAccount, amount);
                         PrintData.print(IConstant.TRANSFER_SUCCESS);
                     } catch (Exception ex) {
                         PrintData.printError(ex.getMessage());

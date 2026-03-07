@@ -1,9 +1,6 @@
 package com.bank.models;
 
-import com.bank.exceptions.AccountNotFoundException;
 import com.bank.exceptions.InsufficientBalanceException;
-import com.bank.exceptions.SelfTransferException;
-import com.bank.services.WalletService;
 import com.bank.util.IConstant;
 
 import java.time.LocalDateTime;
@@ -14,8 +11,6 @@ public class Account {
     private String accountHolder;
     private double balance;
     private List<Transaction> txnHistory;
-
-    private WalletService service = new WalletService();
 
     /**
      * Constructor to initialize a account based on the name and starting amount
@@ -73,30 +68,6 @@ public class Account {
         } else {
             throw new InsufficientBalanceException(String.format(IConstant.INSUFFICIENT_BALANCE, balance));
         }
-    }
-
-    /**
-     * Service to transfer funds from one account holder to another
-     * @param account Source account holder
-     * @param transferTo Name of the account holder to transfer to
-     * @param amount Amount to be transferred
-     * @throws AccountNotFoundException Thrown when account not found with provided name
-     * @throws SelfTransferException Thrown when trying to transfer to self
-     * @throws InsufficientBalanceException Thrown when balance is insufficient
-     */
-    public void transferFunds(final Account account, final String transferTo, final double amount) throws AccountNotFoundException,
-            SelfTransferException, InsufficientBalanceException {
-        Account targetAccount = service.fetchAccount(transferTo);
-
-        if (account.getAccountHolder().equals(targetAccount.getAccountHolder())) {
-            throw new SelfTransferException(IConstant.SELF_TRANSFER_ERROR);
-        }
-
-        withdrawMoney(amount, true);
-        account.getTransactionHistory().add(new Transaction(amount, "Sent to " + transferTo, LocalDateTime.now()));
-
-        targetAccount.addMoney(amount, true);
-        targetAccount.getTransactionHistory().add(new Transaction(amount, "Received from " + account.getAccountHolder(), LocalDateTime.now()));
     }
 
     /**

@@ -1,9 +1,13 @@
 package com.bank.services;
 
+import com.bank.exceptions.InsufficientBalanceException;
+import com.bank.exceptions.SelfTransferException;
+import com.bank.models.Transaction;
 import com.bank.util.IConstant;
 import com.bank.exceptions.AccountNotFoundException;
 import com.bank.models.Account;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class WalletService {
@@ -47,5 +51,26 @@ public class WalletService {
      */
     public Set<String> fetchAccountHolders() {
         return ACCOUNTS.keySet();
+    }
+
+    /**
+     * Service to transfer funds from one account holder to another
+     * @param account Source account holder
+     * @param targetAccount Target account holder to transfer to
+     * @param amount Amount to be transferred
+     * @throws AccountNotFoundException Thrown when account not found with provided name
+     * @throws SelfTransferException Thrown when trying to transfer to self
+     * @throws InsufficientBalanceException Thrown when balance is insufficient
+     */
+    public void transferFunds(final Account account, final Account targetAccount, final double amount) throws SelfTransferException, InsufficientBalanceException {
+        if (account.getAccountHolder().equals(targetAccount.getAccountHolder())) {
+            throw new SelfTransferException(IConstant.SELF_TRANSFER_ERROR);
+        }
+
+        account.withdrawMoney(amount, true);
+        account.getTransactionHistory().add(new Transaction(amount, "Sent to " + targetAccount.getAccountHolder(), LocalDateTime.now()));
+
+        targetAccount.addMoney(amount, true);
+        targetAccount.getTransactionHistory().add(new Transaction(amount, "Received from " + account.getAccountHolder(), LocalDateTime.now()));
     }
 }
