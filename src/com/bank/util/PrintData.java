@@ -1,5 +1,8 @@
 package com.bank.util;
 
+import com.bank.models.Transaction;
+
+import java.util.List;
 import java.util.Set;
 
 public class PrintData {
@@ -40,5 +43,13 @@ public class PrintData {
             return;
         }
         accountHolders.forEach(System.out::println);
+    }
+
+    public static void printTransactions(List<Transaction> transactionHistory) {
+        if (transactionHistory.isEmpty()) {
+            print(IConstant.NO_TRANSACTIONS);
+        } else {
+            transactionHistory.forEach(System.out::println);
+        }
     }
 }

@@ -36,7 +36,7 @@ public class MenuHandler {
                             break;
                         }
                     }
-                    double amount = getAmount("Enter a amount to deposit in your account");
+                    double amount = getAmount(IConstant.ENTER_DEPOSIT);
                     getWalletMenu(service.createAccount(name, amount));
                     break;
                 case 2:
@@ -64,7 +64,7 @@ public class MenuHandler {
     }
 
     /**
-     * Menu options for the account holder
+     * Wallet Menu options for the account holder
      *
      * @param account The account on which operations will be performed
      */
@@ -95,9 +95,9 @@ public class MenuHandler {
                     }
                     break;
                 case 4:
-                    PrintData.print("Enter account holder's name to transfer funds");
+                    PrintData.print(IConstant.TRANSFER_FUNDS_TO);
                     String transferTo = SCANNER.nextLine();
-                    amount = getAmount("Enter an amount you want to transfer");
+                    amount = getAmount(IConstant.ENTER_TRANSFER_AMOUNT);
                     try {
                         account.transferFunds(account, transferTo, amount);
                     } catch (Exception ex) {
@@ -105,7 +105,7 @@ public class MenuHandler {
                     }
                     break;
                 case 5:
-                    account.printTransactionHistory();
+                    PrintData.printTransactions(account.getTransactionHistory());
                     break;
                 default :
                     exit = true;
@@ -118,7 +118,7 @@ public class MenuHandler {
         PrintData.print(IConstant.CHOOSE_AN_OPTION);
         int option;
         while (!SCANNER.hasNextInt()) {
-            System.out.println("Invalid input");
+            PrintData.print(IConstant.INVALID_INPUT);
             SCANNER.next(); // Discarding invalid input
             PrintData.print(IConstant.CHOOSE_AN_OPTION);
         }
@@ -134,7 +134,7 @@ public class MenuHandler {
 
         while (runLoop) {
             while (!SCANNER.hasNextDouble()) {
-                System.out.println("Invalid amount entered");
+                PrintData.print(IConstant.INVALID_AMOUNT);
                 SCANNER.next();
                 PrintData.print(message);
             }

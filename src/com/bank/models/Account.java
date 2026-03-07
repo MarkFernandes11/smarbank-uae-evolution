@@ -96,12 +96,4 @@ public class Account {
     public List<Transaction> getTransactionHistory() {
         return txnHistory;
     }
-
-    public void printTransactionHistory() {
-        if (txnHistory.isEmpty()) {
-            System.out.println("No transactions to be displayed");
-        } else {
-            txnHistory.forEach(System.out::println);
-        }
-    }
 }
