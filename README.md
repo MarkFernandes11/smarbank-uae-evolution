@@ -11,3 +11,5 @@ Phase 1 :
 - Added options in account menu to maintain multiple accounts, login to an account and list all accounts.
 - Created a wallet service and moved all accounts related logic to it.
 - Used a transaction record instead of a string to maintain transactions.
+
+How to Run : First execute -> javac Main.java followed by -> java Main

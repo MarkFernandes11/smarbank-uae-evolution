@@ -1,5 +1,6 @@
 package com.bank.services;
 
+import com.bank.util.IConstant;
 import com.bank.exceptions.AccountNotFoundException;
 import com.bank.models.Account;
 
@@ -20,14 +21,10 @@ public class WalletService {
 
     public Account fetchAccount(final String name) throws AccountNotFoundException {
         return Optional.ofNullable(ACCOUNTS.get(name))
-                       .orElseThrow(() -> new AccountNotFoundException("Account not found with name " + name));
+                       .orElseThrow(() -> new AccountNotFoundException(String.format(IConstant.ACCOUNT_NOT_FOUND, name)));
     }
 
-    public void fetchAccountHolders() {
-        if (ACCOUNTS.isEmpty()) {
-            System.out.println("No accounts created.");
-            return;
-        }
-        ACCOUNTS.keySet().forEach(System.out::println);
+    public Set<String> fetchAccountHolders() {
+        return ACCOUNTS.keySet();
     }
 }
