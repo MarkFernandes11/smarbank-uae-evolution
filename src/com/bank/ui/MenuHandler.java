@@ -77,7 +77,7 @@ public class MenuHandler {
 
             switch (option) {
                 case 1:
-                    double balance = account.getBalance();
+                    double balance = account.getAccountBalance(account.getId());
                     PrintData.print(IConstant.ACCOUNT_BALANCE, balance);
                     break;
                 case 2:
@@ -107,7 +107,7 @@ public class MenuHandler {
                     }
                     break;
                 case 5:
-                    PrintData.printTransactions(account.getTransactionHistory());
+                    PrintData.printTransactions(account.getTransactionHistory(account.getId()));
                     break;
                 default :
                     exit = true;

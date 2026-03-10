@@ -3,7 +3,6 @@ package com.bank.util;
 import com.bank.models.Transaction;
 
 import java.util.List;
-import java.util.Set;
 
 public class PrintData {
 
@@ -37,7 +36,7 @@ public class PrintData {
         System.out.println("6. Main menu");
     }
 
-    public static void printAccountHolders(Set<String> accountHolders) {
+    public static void printAccountHolders(List<String> accountHolders) {
         if (accountHolders.isEmpty()) {
             print(IConstant.ACCOUNTS_NOT_CREATED);
             return;

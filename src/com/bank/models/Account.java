@@ -1,16 +1,21 @@
 package com.bank.models;
 
 import com.bank.exceptions.InsufficientBalanceException;
+import com.bank.repositories.AccountRepository;
+import com.bank.repositories.TransactionRepository;
 import com.bank.util.IConstant;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Account {
+
+    private int id;
     private String accountHolder;
     private double balance;
-    private List<Transaction> txnHistory;
+
+    private TransactionRepository transactionRepository = new TransactionRepository();
+
+    private AccountRepository accountRepository = new AccountRepository();
 
     /**
      * Constructor to initialize a account based on the name and starting amount
@@ -21,9 +26,20 @@ public class Account {
     public Account (final String accountHolder, final double balance) {
         this.accountHolder = accountHolder;
         this.balance = balance;
-        txnHistory = new ArrayList<>();
-        txnHistory.add(new Transaction(balance, "CREDITED", LocalDateTime.now()));
-        // Need to generate a ID from account holder for transferring funds
+    }
+
+    public Account (final String accountHolder, final double balance, final int id) {
+        this.accountHolder = accountHolder;
+        this.balance = balance;
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     /**
@@ -41,6 +57,10 @@ public class Account {
         return balance;
     }
 
+    public double getAccountBalance(final int accountId) {
+        return accountRepository.getBalance(accountId);
+    }
+
     /**
      * Adds money to the account if the amount is positive
      *
@@ -49,8 +69,9 @@ public class Account {
      */
     public void addMoney(double money, boolean transfer) {
         balance += money;
+        accountRepository.updateBalance(getId(), money);
         if (!transfer) {
-            txnHistory.add(new Transaction(money, "CREDITED", LocalDateTime.now()));
+            transactionRepository.saveTransaction(getId(), Transaction.getTransaction(money, "CREDITED"));
         }
     }
 
@@ -62,8 +83,9 @@ public class Account {
     public void withdrawMoney(double money, boolean transfer) throws InsufficientBalanceException {
         if ((balance - money) >= 0) {
             balance -= money;
+            accountRepository.updateBalance(getId(), money);
             if (!transfer) {
-                txnHistory.add(new Transaction(money, "DEBITED", LocalDateTime.now()));
+                transactionRepository.saveTransaction(getId(), Transaction.getTransaction(money, "DEBITED"));
             }
         } else {
             throw new InsufficientBalanceException(String.format(IConstant.INSUFFICIENT_BALANCE, balance));
@@ -73,7 +95,7 @@ public class Account {
     /**
      * Fetches the transaction history for the account holder
      */
-    public List<Transaction> getTransactionHistory() {
-        return txnHistory;
+    public List<Transaction> getTransactionHistory(final int accountId) {
+        return transactionRepository.getTransactions(accountId);
     }
 }
