@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,8 +24,6 @@ public class TransactionRepository {
             statement.setString(3, txn.transactionType());
 
             statement.executeUpdate();
-            System.out.println("Transaction Added");
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -43,8 +42,8 @@ public class TransactionRepository {
             while (resultSet.next()) {
                 double amount = resultSet.getDouble("amount");
                 String transactionType = resultSet.getString("transaction_type");
-//                double amount = resultSet.getDouble("amount");
-                Transaction transaction = new Transaction(amount, transactionType, null);
+                LocalDateTime timeStamp = resultSet.getObject("timestamp", LocalDateTime.class);
+                Transaction transaction = new Transaction(amount, transactionType, timeStamp);
                 transactions.add(transaction);
             }
         } catch (SQLException e) {

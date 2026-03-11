@@ -12,7 +12,6 @@ import com.bank.models.Account;
 import java.util.*;
 
 public class WalletService {
-//    private static final Map<String, Account> ACCOUNTS = new HashMap<>();
     private AccountRepository accountRepository = new AccountRepository();
     private TransactionRepository transactionRepository = new TransactionRepository();
 
@@ -45,8 +44,8 @@ public class WalletService {
      * @throws AccountNotFoundException Exception is thrown if account not found
      */
     public Account fetchAccount(final String name) throws AccountNotFoundException {
-        return Optional.of(accountRepository.findByName(name).get())
-                       .orElseThrow(() -> new AccountNotFoundException(String.format(IConstant.ACCOUNT_NOT_FOUND, name)));
+        return accountRepository.findByName(name)
+                   .orElseThrow(() -> new AccountNotFoundException(String.format(IConstant.ACCOUNT_NOT_FOUND, name)));
     }
 
     /**
@@ -70,10 +69,10 @@ public class WalletService {
             throw new SelfTransferException(IConstant.SELF_TRANSFER_ERROR);
         }
 
-        account.withdrawMoney(amount, true);
+        account.withdrawMoney(amount, account.getId(), true);
         transactionRepository.saveTransaction(account.getId(), Transaction.getTransaction(amount, "Sent to " + targetAccount.getAccountHolder()));
 
-        targetAccount.addMoney(amount, true);
-        transactionRepository.saveTransaction(targetAccount.getId(), Transaction.getTransaction(amount, "Sent to " + account.getAccountHolder()));
+        targetAccount.addMoney(amount, targetAccount.getId(), true);
+        transactionRepository.saveTransaction(targetAccount.getId(), Transaction.getTransaction(amount, "Received from " + account.getAccountHolder()));
     }
 }

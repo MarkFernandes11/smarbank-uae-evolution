@@ -16,3 +16,10 @@ Phase 1 :
 - TODO : Need to create account with a unique ID and need to handle concurrency for Map 
 
 How to Run : First execute -> javac Main.java followed by -> java Main
+
+Phase 2 :
+
+- Created a Postgre Connection Utility class to connect to the database.
+- Removed the accounts hashmap and instead created a table in database.
+- Added transactions database to store transactions of each user.
+- Added accounts and transactions repository to commit data to database.

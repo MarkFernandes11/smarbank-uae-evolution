@@ -75,43 +75,39 @@ public class MenuHandler {
             int option = getOption();
             double amount;
 
-            switch (option) {
-                case 1:
-                    double balance = account.getAccountBalance(account.getId());
-                    PrintData.print(IConstant.ACCOUNT_BALANCE, balance);
-                    break;
-                case 2:
-                    amount = getAmount(IConstant.ENTER_ADD_AMOUNT);
-                    account.addMoney(amount, false);
-                    PrintData.print(IConstant.ADD_SUCCESS, amount);
-                    break;
-                case 3:
-                    amount = getAmount(IConstant.ENTER_WITHDRAW_AMOUNT);
-                    try {
-                        account.withdrawMoney(amount, false);
+            try {
+                switch (option) {
+                    case 1:
+                        double balance = account.getAccountBalance(account.getId());
+                        PrintData.print(IConstant.ACCOUNT_BALANCE, balance);
+                        break;
+                    case 2:
+                        amount = getAmount(IConstant.ENTER_ADD_AMOUNT);
+                        account.addMoney(amount, account.getId(), false);
+                        PrintData.print(IConstant.ADD_SUCCESS, amount);
+                        break;
+                    case 3:
+                        amount = getAmount(IConstant.ENTER_WITHDRAW_AMOUNT);
+                        account.withdrawMoney(amount, account.getId(), false);
                         PrintData.print(IConstant.WITHDRAW_SUCCESS, amount);
-                    } catch (Exception ex) {
-                        PrintData.printError(ex.getMessage());
-                    }
-                    break;
-                case 4:
-                    PrintData.print(IConstant.TRANSFER_FUNDS_TO);
-                    String transferTo = SCANNER.nextLine();
-                    try {
+                        break;
+                    case 4:
+                        PrintData.print(IConstant.TRANSFER_FUNDS_TO);
+                        String transferTo = SCANNER.nextLine();
                         Account targetAccount = service.fetchAccount(transferTo);
                         amount = getAmount(IConstant.ENTER_TRANSFER_AMOUNT);
                         service.transferFunds(account, targetAccount, amount);
                         PrintData.print(IConstant.TRANSFER_SUCCESS);
-                    } catch (Exception ex) {
-                        PrintData.printError(ex.getMessage());
-                    }
-                    break;
-                case 5:
-                    PrintData.printTransactions(account.getTransactionHistory(account.getId()));
-                    break;
-                default :
-                    exit = true;
-                    break;
+                        break;
+                    case 5:
+                        PrintData.printTransactions(account.getTransactionHistory(account.getId()));
+                        break;
+                    default :
+                        exit = true;
+                        break;
+                }
+            } catch (Exception ex) {
+                PrintData.printError(ex.getMessage());
             }
         }
     }
