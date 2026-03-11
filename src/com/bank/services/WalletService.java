@@ -69,10 +69,64 @@ public class WalletService {
             throw new SelfTransferException(IConstant.SELF_TRANSFER_ERROR);
         }
 
-        account.withdrawMoney(amount, account.getId(), true);
+        withdrawMoney(amount, account.getId(), true);
         transactionRepository.saveTransaction(account.getId(), Transaction.getTransaction(amount, "Sent to " + targetAccount.getAccountHolder()));
 
-        targetAccount.addMoney(amount, targetAccount.getId(), true);
+        addMoney(amount, targetAccount.getId(), true);
         transactionRepository.saveTransaction(targetAccount.getId(), Transaction.getTransaction(amount, "Received from " + account.getAccountHolder()));
+    }
+
+    /**
+     * Adds money to the account if the amount is positive
+     *
+     * @param money the amount to be added
+     * @param accountId accountId of the account holder
+     * @param transfer Whether it is a transfer request or not
+     */
+    public void addMoney(double money, int accountId, boolean transfer) {
+        double currentBalance = accountRepository.getBalance(accountId);
+        currentBalance += money;
+        accountRepository.updateBalance(accountId, currentBalance);
+        if (!transfer) {
+            transactionRepository.saveTransaction(accountId, Transaction.getTransaction(money, "CREDITED"));
+        }
+    }
+
+    /**
+     * Withdraws money from the account if withdrawal possible
+     *
+     * @param money amount to be withdrawn
+     * @param accountId accountId of the account holder
+     * @param transfer Whether it is a transfer request or not
+     */
+    public void withdrawMoney(double money, int accountId, boolean transfer) throws InsufficientBalanceException {
+        double currentBalance = accountRepository.getBalance(accountId);
+        if ((currentBalance - money) >= 0) {
+            currentBalance -= money;
+            accountRepository.updateBalance(accountId, currentBalance);
+            if (!transfer) {
+                transactionRepository.saveTransaction(accountId, Transaction.getTransaction(money, "DEBITED"));
+            }
+        } else {
+            throw new InsufficientBalanceException(String.format(IConstant.INSUFFICIENT_BALANCE, currentBalance));
+        }
+    }
+
+    /**
+     * Fetches the balance from database
+     * @param accountId accountId of the account holder
+     * @return Returns the balance in the account
+     */
+    public double getAccountBalance(final int accountId) {
+        return accountRepository.getBalance(accountId);
+    }
+
+    /**
+     * Fetches the transaction history for the account holder
+     * @param accountId accountId of the account holder
+     * @return list of transactions of the account holder
+     */
+    public List<Transaction> getTransactionHistory(final int accountId) {
+        return transactionRepository.getTransactions(accountId);
     }
 }

@@ -74,17 +74,17 @@ public class MenuHandler {
             try {
                 switch (option) {
                     case 1:
-                        double balance = account.getAccountBalance(account.getId());
+                        double balance = service.getAccountBalance(account.getId());
                         PrintData.print(IConstant.ACCOUNT_BALANCE, balance);
                         break;
                     case 2:
                         amount = getAmount(IConstant.ENTER_ADD_AMOUNT);
-                        account.addMoney(amount, account.getId(), false);
+                        service.addMoney(amount, account.getId(), false);
                         PrintData.print(IConstant.ADD_SUCCESS, amount);
                         break;
                     case 3:
                         amount = getAmount(IConstant.ENTER_WITHDRAW_AMOUNT);
-                        account.withdrawMoney(amount, account.getId(), false);
+                        service.withdrawMoney(amount, account.getId(), false);
                         PrintData.print(IConstant.WITHDRAW_SUCCESS, amount);
                         break;
                     case 4:
@@ -96,7 +96,7 @@ public class MenuHandler {
                         PrintData.print(IConstant.TRANSFER_SUCCESS);
                         break;
                     case 5:
-                        PrintData.printTransactions(account.getTransactionHistory(account.getId()));
+                        PrintData.printTransactions(service.getTransactionHistory(account.getId()));
                         break;
                     default :
                         exit = true;
