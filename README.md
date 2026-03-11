@@ -23,3 +23,4 @@ Phase 2 :
 - Removed the accounts hashmap and instead created a table in database.
 - Added transactions database to store transactions of each user.
 - Added accounts and transactions repository to commit data to database.
+- Updated documentation of the methods in wallet service and account

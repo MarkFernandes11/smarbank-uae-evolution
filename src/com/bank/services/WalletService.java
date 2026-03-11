@@ -16,7 +16,7 @@ public class WalletService {
     private TransactionRepository transactionRepository = new TransactionRepository();
 
     /**
-     * Creates a new account with name and initial deposit
+     * Creates a new account with name and initial deposit and saves in db
      * @param name Name of account holder
      * @param amount Initial deposit
      * @return Returns the account created
@@ -50,7 +50,7 @@ public class WalletService {
 
     /**
      * Fetches all the account holders
-     * @return Set of all account holders is returned
+     * @return List of all account holder names is returned
      */
     public List<String> fetchAccountHolders() {
         return accountRepository.getAllUsernames();

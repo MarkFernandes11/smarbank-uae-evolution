@@ -24,40 +24,35 @@ public class MenuHandler {
             PrintData.displayMainMenu();
             int option = getOption();
 
-            switch (option) {
-                case 1:
-                    PrintData.print(IConstant.ENTER_NAME);
-                    name = SCANNER.nextLine();
-                    if (service.checkAccountExists(name)) {
-                        try {
+            try {
+                switch (option) {
+                    case 1:
+                        PrintData.print(IConstant.ENTER_NAME);
+                        name = SCANNER.nextLine();
+                        if (service.checkAccountExists(name)) {
                             throw new AccountAlreadyExistsException(String.format(IConstant.ACCOUNT_ALREADY_EXISTS, name));
-                        } catch (Exception ex) {
-                            PrintData.printError(ex.getMessage());
-                            break;
                         }
-                    }
-                    double amount = getAmount(IConstant.ENTER_DEPOSIT);
-                    getWalletMenu(service.createAccount(name, amount), service);
-                    break;
-                case 2:
-                    PrintData.print(IConstant.ENTER_NAME);
-                    name = SCANNER.nextLine();
-                    Account account = null;
-                    try {
-                        account = service.fetchAccount(name);
-                    } catch (Exception ex) {
-                        PrintData.printError(ex.getMessage());
+                        double amount = getAmount(IConstant.ENTER_DEPOSIT);
+                        getWalletMenu(service.createAccount(name, amount), service);
                         break;
-                    }
-                    getWalletMenu(account, service);
-                    break;
-                case 3:
-                    PrintData.printAccountHolders(service.fetchAccountHolders());
-                    break;
-                default:
-                    exit = true;
-                    break;
+                    case 2:
+                        PrintData.print(IConstant.ENTER_NAME);
+                        name = SCANNER.nextLine();
+                        Account account = service.fetchAccount(name);
+                        getWalletMenu(account, service);
+                        break;
+                    case 3:
+                        PrintData.printAccountHolders(service.fetchAccountHolders());
+                        break;
+                    default:
+                        exit = true;
+                        break;
+                }
+            } catch (Exception ex) {
+                PrintData.printError(ex.getMessage());
             }
+
+
         }
         PrintData.print("Exiting wallet");
         SCANNER.close();
@@ -67,6 +62,7 @@ public class MenuHandler {
      * Wallet Menu options for the account holder
      *
      * @param account The account on which operations will be performed
+     * @param service Wallet service to perform operation on account
      */
     private static void getWalletMenu(Account account, WalletService service) {
         boolean exit = false;
