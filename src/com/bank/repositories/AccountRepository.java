@@ -2,7 +2,6 @@ package com.bank.repositories;
 
 import com.bank.exceptions.AccountNotFoundException;
 import com.bank.models.Account;
-import com.bank.util.DBConnection.PostgresConnection;
 import com.bank.util.IConstant;
 
 import java.sql.*;
@@ -12,11 +11,10 @@ import java.util.Optional;
 
 public class AccountRepository {
 
-    public void saveAccount(Account account) {
+    public void saveAccount(Connection connection, Account account) {
         String sql = "INSERT INTO accounts (holder_name, balance) VALUES (?, ?)";
 
-        try (Connection connection  = PostgresConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             statement.setString(1, account.getAccountHolder());
             statement.setDouble(2, account.getBalance());
@@ -40,11 +38,10 @@ public class AccountRepository {
         }
     }
 
-    public Optional<Account> findByName(String name) {
+    public Optional<Account> findByName(Connection connection, String name) {
         String sql = "SELECT * from accounts where holder_name = ?";
 
-        try (Connection connection = PostgresConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, name);
 
             ResultSet resultSet = statement.executeQuery();
@@ -60,11 +57,10 @@ public class AccountRepository {
         }
     }
 
-    public void updateBalance(int accountId, double newBalance) {
+    public void updateBalance(Connection connection, int accountId, double newBalance) {
         String sql = "UPDATE accounts SET balance = ? WHERE id = ?";
 
-        try (Connection connection = PostgresConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setDouble(1, newBalance);
             statement.setInt(2, accountId);
 
@@ -75,12 +71,11 @@ public class AccountRepository {
         }
     }
 
-    public List<String> getAllUsernames() {
+    public List<String> getAllUsernames(Connection connection) {
         List<String> userNames = new ArrayList<>();
         String sql = "SELECT holder_name from accounts";
 
-        try (Connection connection = PostgresConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
@@ -94,11 +89,10 @@ public class AccountRepository {
         return userNames;
     }
 
-    public double getBalance(final int id) {
+    public double getBalance(Connection connection, final int id) {
         String sql = "SELECT balance from accounts where id = ?";
 
-        try (Connection connection = PostgresConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {

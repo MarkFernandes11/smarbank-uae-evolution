@@ -1,7 +1,6 @@
 package com.bank.repositories;
 
 import com.bank.models.Transaction;
-import com.bank.util.DBConnection.PostgresConnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,11 +12,10 @@ import java.util.List;
 
 public class TransactionRepository {
 
-    public void saveTransaction(int accountId, Transaction txn) {
+    public void saveTransaction(Connection connection, int accountId, Transaction txn) {
         String sql = "INSERT INTO transactions (account_id, amount, transaction_type) VALUES (?, ?, ?)";
 
-        try (Connection connection = PostgresConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, accountId);
             statement.setDouble(2, txn.amount());
@@ -29,12 +27,11 @@ public class TransactionRepository {
         }
     }
 
-    public List<Transaction> getTransactions(int accountId) {
+    public List<Transaction> getTransactions(Connection connection, int accountId) {
         String sql = "SELECT * FROM transactions WHERE account_id = ?";
         List<Transaction> transactions = new ArrayList<>();
 
-        try (Connection connection = PostgresConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, accountId);
 
