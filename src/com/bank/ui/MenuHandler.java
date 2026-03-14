@@ -6,6 +6,7 @@ import com.bank.services.WalletService;
 import com.bank.util.IConstant;
 import com.bank.util.PrintData;
 
+import java.util.Optional;
 import java.util.Scanner;
 
 public class MenuHandler {
@@ -79,12 +80,12 @@ public class MenuHandler {
                         break;
                     case 2:
                         amount = getAmount(IConstant.ENTER_ADD_AMOUNT);
-                        service.addMoney(amount, account.getId(), false);
+                        service.addMoney(Optional.of(null), amount, account.getId(), false);
                         PrintData.print(IConstant.ADD_SUCCESS, amount);
                         break;
                     case 3:
                         amount = getAmount(IConstant.ENTER_WITHDRAW_AMOUNT);
-                        service.withdrawMoney(amount, account.getId(), false);
+                        service.withdrawMoney(Optional.of(null), amount, account.getId(), false);
                         PrintData.print(IConstant.WITHDRAW_SUCCESS, amount);
                         break;
                     case 4:

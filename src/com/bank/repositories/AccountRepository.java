@@ -15,7 +15,6 @@ public class AccountRepository {
         String sql = "INSERT INTO accounts (holder_name, balance) VALUES (?, ?)";
 
         try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
             statement.setString(1, account.getAccountHolder());
             statement.setDouble(2, account.getBalance());
 
@@ -32,7 +31,7 @@ public class AccountRepository {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database error during account creation", e);
         } catch (AccountNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -76,7 +75,6 @@ public class AccountRepository {
         String sql = "SELECT holder_name from accounts";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 String accountHolder = resultSet.getString("holder_name");

@@ -109,6 +109,7 @@ public class WalletService {
      * @param amount Amount to be transferred
      * @throws SelfTransferException Thrown when trying to transfer to self
      * @throws InsufficientBalanceException Thrown when balance is insufficient
+     * @throws SQLException Thrown when some issue in sql
      */
     public void transferFunds(final Account account, final Account targetAccount, final double amount) throws SelfTransferException, SQLException, InsufficientBalanceException {
         Connection connection = null;
@@ -119,10 +120,10 @@ public class WalletService {
                 throw new SelfTransferException(IConstant.SELF_TRANSFER_ERROR);
             }
 
-            withdrawMoney(connection, amount, account.getId(), true);
+            withdrawMoney(Optional.of(connection), amount, account.getId(), true);
             transactionRepository.saveTransaction(connection, account.getId(), Transaction.getTransaction(amount, "Sent to " + targetAccount.getAccountHolder()));
 
-            addMoney(connection, amount, targetAccount.getId(), true);
+            addMoney(Optional.of(connection), amount, targetAccount.getId(), true);
             transactionRepository.saveTransaction(connection, targetAccount.getId(), Transaction.getTransaction(amount, "Received from " + account.getAccountHolder()));
 
             connection.commit();
@@ -134,51 +135,74 @@ public class WalletService {
         }
     }
 
-    public void addMoney(double money, int accountId, boolean transfer) throws SQLException {
-        try (Connection connection = PostgresConnection.getConnection()) {
-            addMoney(connection, money, accountId, transfer);
-        }
-    }
-
     /**
      * Adds money to the account if the amount is positive
      *
+     * @param connectionOpt Optional Connection to communicate with the db
      * @param money the amount to be added
      * @param accountId accountId of the account holder
      * @param transfer Whether it is a transfer request or not
      */
-    public void addMoney(Connection connection, double money, int accountId, boolean transfer) {
-        double currentBalance = accountRepository.getBalance(connection, accountId);
-        currentBalance += money;
-        accountRepository.updateBalance(connection, accountId, currentBalance);
-        if (!transfer) {
-            transactionRepository.saveTransaction(connection, accountId, Transaction.getTransaction(money, "CREDITED"));
-        }
-    }
+    public void addMoney(Optional<Connection> connectionOpt, double money, int accountId, boolean transfer) throws SQLException {
+        Connection connection = null;
+        try {
+            connection = connectionOpt.isPresent() ? connectionOpt.get() : PostgresConnection.getConnection();
+            connection.setAutoCommit(false);
 
-    public void withdrawMoney(double money, int accountId, boolean transfer) throws SQLException, InsufficientBalanceException {
-        try (Connection connection = PostgresConnection.getConnection()) {
-            withdrawMoney(connection, money, accountId, transfer);
+            double currentBalance = accountRepository.getBalance(connection, accountId);
+            currentBalance += money;
+            accountRepository.updateBalance(connection, accountId, currentBalance);
+            if (!transfer) {
+                transactionRepository.saveTransaction(connection, accountId, Transaction.getTransaction(money, "CREDITED"));
+            }
+            if (!transfer) connection.commit();
+        } catch (Exception e) {
+            if (!connectionOpt.isPresent()) {
+                rollbackTransaction(connection);
+            }
+            throw e;
+        } finally {
+            if (!connectionOpt.isPresent()) {
+                closeConnection(connection);
+            }
         }
     }
 
     /**
      * Withdraws money from the account if withdrawal possible
      *
+     * @param connectionOpt Optional Connection to communicate with the db
      * @param money amount to be withdrawn
      * @param accountId accountId of the account holder
      * @param transfer Whether it is a transfer request or not
      */
-    public void withdrawMoney(Connection connection, double money, int accountId, boolean transfer) throws InsufficientBalanceException {
-        double currentBalance = accountRepository.getBalance(connection, accountId);
-        if ((currentBalance - money) >= 0) {
-            currentBalance -= money;
-            accountRepository.updateBalance(connection, accountId, currentBalance);
-            if (!transfer) {
-                transactionRepository.saveTransaction(connection, accountId, Transaction.getTransaction(money, "DEBITED"));
+    public void withdrawMoney(Optional<Connection> connectionOpt, double money, int accountId, boolean transfer) throws InsufficientBalanceException, SQLException {
+        Connection connection = null;
+        boolean insufficientBalance = false;
+        try {
+            connection = connectionOpt.isPresent() ? connectionOpt.get() : PostgresConnection.getConnection();
+            connection.setAutoCommit(false);
+            double currentBalance = accountRepository.getBalance(connection, accountId);
+            if ((currentBalance - money) >= 0) {
+                currentBalance -= money;
+                accountRepository.updateBalance(connection, accountId, currentBalance);
+                if (!transfer) {
+                    transactionRepository.saveTransaction(connection, accountId, Transaction.getTransaction(money, "DEBITED"));
+                }
+                if (!transfer) connection.commit();
+            } else {
+                insufficientBalance = true;
+                throw new InsufficientBalanceException(String.format(IConstant.INSUFFICIENT_BALANCE, currentBalance));
             }
-        } else {
-            throw new InsufficientBalanceException(String.format(IConstant.INSUFFICIENT_BALANCE, currentBalance));
+        } catch (Exception e) {
+            if (!connectionOpt.isPresent() && !insufficientBalance) {
+                rollbackTransaction(connection);
+            }
+            throw e;
+        } finally {
+            if (!connectionOpt.isPresent()) {
+                closeConnection(connection);
+            }
         }
     }
 
