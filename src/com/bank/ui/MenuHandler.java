@@ -6,6 +6,7 @@ import com.bank.services.WalletService;
 import com.bank.util.IConstant;
 import com.bank.util.PrintData;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -34,7 +35,7 @@ public class MenuHandler {
                             throw new AccountAlreadyExistsException(String.format(IConstant.ACCOUNT_ALREADY_EXISTS, name));
                         }
                         double amount = getAmount(IConstant.ENTER_DEPOSIT);
-                        getWalletMenu(service.createAccount(name, amount), service);
+                        getWalletMenu(service.createAccount(name, BigDecimal.valueOf(amount)), service);
                         break;
                     case 2:
                         PrintData.print(IConstant.ENTER_NAME);
@@ -75,25 +76,25 @@ public class MenuHandler {
             try {
                 switch (option) {
                     case 1:
-                        double balance = service.getAccountBalance(account.getId());
+                        BigDecimal balance = service.getAccountBalance(account.getId());
                         PrintData.print(IConstant.ACCOUNT_BALANCE, balance);
                         break;
                     case 2:
                         amount = getAmount(IConstant.ENTER_ADD_AMOUNT);
-                        service.addMoney(Optional.of(null), amount, account.getId(), false);
-                        PrintData.print(IConstant.ADD_SUCCESS, amount);
+                        service.addMoney(Optional.of(null), BigDecimal.valueOf(amount), account.getId(), false);
+                        PrintData.print(IConstant.ADD_SUCCESS, BigDecimal.valueOf(amount));
                         break;
                     case 3:
                         amount = getAmount(IConstant.ENTER_WITHDRAW_AMOUNT);
-                        service.withdrawMoney(Optional.of(null), amount, account.getId(), false);
-                        PrintData.print(IConstant.WITHDRAW_SUCCESS, amount);
+                        service.withdrawMoney(Optional.of(null), BigDecimal.valueOf(amount), account.getId(), false);
+                        PrintData.print(IConstant.WITHDRAW_SUCCESS, BigDecimal.valueOf(amount));
                         break;
                     case 4:
                         PrintData.print(IConstant.TRANSFER_FUNDS_TO);
                         String transferTo = SCANNER.nextLine();
                         Account targetAccount = service.fetchAccount(transferTo);
                         amount = getAmount(IConstant.ENTER_TRANSFER_AMOUNT);
-                        service.transferFunds(account, targetAccount, amount);
+                        service.transferFunds(account, targetAccount, BigDecimal.valueOf(amount));
                         PrintData.print(IConstant.TRANSFER_SUCCESS);
                         break;
                     case 5:

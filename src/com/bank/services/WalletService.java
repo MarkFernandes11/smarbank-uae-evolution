@@ -10,6 +10,7 @@ import com.bank.util.IConstant;
 import com.bank.exceptions.AccountNotFoundException;
 import com.bank.models.Account;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
@@ -24,7 +25,7 @@ public class WalletService {
      * @param amount Initial deposit
      * @return Returns the account created
      */
-    public Account createAccount(final String name, final double amount) throws SQLException {
+    public Account createAccount(final String name, final BigDecimal amount) throws SQLException {
         Connection connection = null;
         try {
             connection = PostgresConnection.getConnection();
@@ -111,7 +112,7 @@ public class WalletService {
      * @throws InsufficientBalanceException Thrown when balance is insufficient
      * @throws SQLException Thrown when some issue in sql
      */
-    public void transferFunds(final Account account, final Account targetAccount, final double amount) throws SelfTransferException, SQLException, InsufficientBalanceException {
+    public void transferFunds(final Account account, final Account targetAccount, final BigDecimal amount) throws SelfTransferException, SQLException, InsufficientBalanceException {
         Connection connection = null;
         try {
             connection = PostgresConnection.getConnection();
@@ -143,14 +144,14 @@ public class WalletService {
      * @param accountId accountId of the account holder
      * @param transfer Whether it is a transfer request or not
      */
-    public void addMoney(Optional<Connection> connectionOpt, double money, int accountId, boolean transfer) throws SQLException {
+    public void addMoney(Optional<Connection> connectionOpt, BigDecimal money, int accountId, boolean transfer) throws SQLException {
         Connection connection = null;
         try {
             connection = connectionOpt.isPresent() ? connectionOpt.get() : PostgresConnection.getConnection();
             connection.setAutoCommit(false);
 
-            double currentBalance = accountRepository.getBalance(connection, accountId);
-            currentBalance += money;
+            BigDecimal currentBalance = accountRepository.getBalance(connection, accountId);
+            currentBalance = currentBalance.add(money);
             accountRepository.updateBalance(connection, accountId, currentBalance);
             if (!transfer) {
                 transactionRepository.saveTransaction(connection, accountId, Transaction.getTransaction(money, "CREDITED"));
@@ -176,15 +177,15 @@ public class WalletService {
      * @param accountId accountId of the account holder
      * @param transfer Whether it is a transfer request or not
      */
-    public void withdrawMoney(Optional<Connection> connectionOpt, double money, int accountId, boolean transfer) throws InsufficientBalanceException, SQLException {
+    public void withdrawMoney(Optional<Connection> connectionOpt, BigDecimal money, int accountId, boolean transfer) throws InsufficientBalanceException, SQLException {
         Connection connection = null;
         boolean insufficientBalance = false;
         try {
             connection = connectionOpt.isPresent() ? connectionOpt.get() : PostgresConnection.getConnection();
             connection.setAutoCommit(false);
-            double currentBalance = accountRepository.getBalance(connection, accountId);
-            if ((currentBalance - money) >= 0) {
-                currentBalance -= money;
+            BigDecimal currentBalance = accountRepository.getBalance(connection, accountId);
+            if (!(currentBalance.subtract(money).compareTo(BigDecimal.ZERO) < 0)) {
+                currentBalance = currentBalance.subtract(money);
                 accountRepository.updateBalance(connection, accountId, currentBalance);
                 if (!transfer) {
                     transactionRepository.saveTransaction(connection, accountId, Transaction.getTransaction(money, "DEBITED"));
@@ -211,7 +212,7 @@ public class WalletService {
      * @param accountId accountId of the account holder
      * @return Returns the balance in the account
      */
-    public double getAccountBalance(final int accountId) {
+    public BigDecimal getAccountBalance(final int accountId) {
         try (Connection connection = PostgresConnection.getConnection()) {
             return accountRepository.getBalance(connection, accountId);
         } catch (SQLException e) {

@@ -2,6 +2,7 @@ package com.bank.util;
 
 import com.bank.models.Transaction;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class PrintData {
@@ -10,7 +11,7 @@ public class PrintData {
         System.out.println(String.format(IConstant.PRINT_ERROR, message));
     }
 
-    public static void print(String message, double amount) {
+    public static void print(String message, BigDecimal amount) {
         System.out.println(String.format(message, amount));
     }
 

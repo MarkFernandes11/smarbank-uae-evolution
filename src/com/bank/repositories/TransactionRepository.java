@@ -2,6 +2,7 @@ package com.bank.repositories;
 
 import com.bank.models.Transaction;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,7 +19,7 @@ public class TransactionRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, accountId);
-            statement.setDouble(2, txn.amount());
+            statement.setBigDecimal(2, txn.amount());
             statement.setString(3, txn.transactionType());
 
             statement.executeUpdate();
@@ -37,7 +38,7 @@ public class TransactionRepository {
 
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                double amount = resultSet.getDouble("amount");
+                BigDecimal amount = resultSet.getBigDecimal("amount");
                 String transactionType = resultSet.getString("transaction_type");
                 LocalDateTime timeStamp = resultSet.getObject("timestamp", LocalDateTime.class);
                 Transaction transaction = new Transaction(amount, transactionType, timeStamp);

@@ -4,6 +4,7 @@ import com.bank.exceptions.AccountNotFoundException;
 import com.bank.models.Account;
 import com.bank.util.IConstant;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ public class AccountRepository {
 
         try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, account.getAccountHolder());
-            statement.setDouble(2, account.getBalance());
+            statement.setBigDecimal(2, account.getBalance());
 
             int rowsAffected = statement.executeUpdate();
             if (rowsAffected == 0) {
@@ -46,7 +47,7 @@ public class AccountRepository {
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 String accountHolder = resultSet.getString("holder_name");
-                double balance = resultSet.getDouble("balance");
+                BigDecimal balance = resultSet.getBigDecimal("balance");
                 int id = resultSet.getInt("id");
                 return Optional.of(new Account(accountHolder, balance, id));
             }
@@ -56,11 +57,11 @@ public class AccountRepository {
         }
     }
 
-    public void updateBalance(Connection connection, int accountId, double newBalance) {
+    public void updateBalance(Connection connection, int accountId, BigDecimal newBalance) {
         String sql = "UPDATE accounts SET balance = ? WHERE id = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setDouble(1, newBalance);
+            statement.setBigDecimal(1, newBalance);
             statement.setInt(2, accountId);
 
             statement.executeUpdate();
@@ -87,17 +88,17 @@ public class AccountRepository {
         return userNames;
     }
 
-    public double getBalance(Connection connection, final int id) {
+    public BigDecimal getBalance(Connection connection, final int id) {
         String sql = "SELECT balance from accounts where id = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                double balance = resultSet.getDouble("balance");
+                BigDecimal balance = resultSet.getBigDecimal("balance");
                 return balance;
             }
-            return 0.0;
+            return BigDecimal.ZERO;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
