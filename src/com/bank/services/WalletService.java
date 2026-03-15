@@ -24,6 +24,7 @@ public class WalletService {
      * @param name Name of account holder
      * @param amount Initial deposit
      * @return Returns the account created
+     * @throws SQLException Thrown exception when some issue in interacting with db
      */
     public Account createAccount(final String name, final BigDecimal amount) throws SQLException {
         Connection connection = null;
@@ -43,6 +44,10 @@ public class WalletService {
         }
     }
 
+    /**
+     * Rolls back the transaction in case of something went wrong
+     * @param connection Connection to communicate with the db
+     */
     private void rollbackTransaction(Connection connection) {
         if (connection != null) {
             try {
@@ -53,6 +58,10 @@ public class WalletService {
         }
     }
 
+    /**
+     * Closes the connection once the interaction with db is over
+     * @param connection Connection to communicate with the db
+     */
     private void closeConnection(Connection connection) {
         if (connection != null) {
             try {
@@ -67,6 +76,7 @@ public class WalletService {
      * Checks if account exists
      * @param name Name of account holder
      * @return if account exists it returns true else false
+     * @throws SQLException Thrown exception when some issue in interacting with db
      */
     public boolean checkAccountExists(String name) throws SQLException {
         try (Connection connection = PostgresConnection.getConnection()) {
@@ -81,6 +91,7 @@ public class WalletService {
      * @param name Checks if account exists for the provided name
      * @return Returns the account found
      * @throws AccountNotFoundException Exception is thrown if account not found
+     * @throws SQLException Thrown exception when some issue in interacting with db
      */
     public Account fetchAccount(final String name) throws SQLException, AccountNotFoundException {
         try (Connection connection = PostgresConnection.getConnection()) {
@@ -94,6 +105,7 @@ public class WalletService {
     /**
      * Fetches all the account holders
      * @return List of all account holder names is returned
+     * @throws SQLException Thrown exception when some issue in interacting with db
      */
     public List<String> fetchAccountHolders() throws SQLException {
         try (Connection connection = PostgresConnection.getConnection()) {
@@ -110,7 +122,7 @@ public class WalletService {
      * @param amount Amount to be transferred
      * @throws SelfTransferException Thrown when trying to transfer to self
      * @throws InsufficientBalanceException Thrown when balance is insufficient
-     * @throws SQLException Thrown when some issue in sql
+     * @throws SQLException Thrown exception when some issue in interacting with db
      */
     public void transferFunds(final Account account, final Account targetAccount, final BigDecimal amount) throws SelfTransferException, SQLException, InsufficientBalanceException {
         Connection connection = null;
@@ -138,11 +150,11 @@ public class WalletService {
 
     /**
      * Adds money to the account if the amount is positive
-     *
      * @param connectionOpt Optional Connection to communicate with the db
      * @param money the amount to be added
      * @param accountId accountId of the account holder
      * @param transfer Whether it is a transfer request or not
+     * @throws SQLException Thrown exception when some issue in interacting with db
      */
     public void addMoney(Optional<Connection> connectionOpt, BigDecimal money, int accountId, boolean transfer) throws SQLException {
         Connection connection = null;
@@ -171,11 +183,12 @@ public class WalletService {
 
     /**
      * Withdraws money from the account if withdrawal possible
-     *
      * @param connectionOpt Optional Connection to communicate with the db
      * @param money amount to be withdrawn
      * @param accountId accountId of the account holder
      * @param transfer Whether it is a transfer request or not
+     * @throws InsufficientBalanceException Thrown when balance is insufficient
+     * @throws SQLException Thrown exception when some issue in interacting with db
      */
     public void withdrawMoney(Optional<Connection> connectionOpt, BigDecimal money, int accountId, boolean transfer) throws InsufficientBalanceException, SQLException {
         Connection connection = null;
