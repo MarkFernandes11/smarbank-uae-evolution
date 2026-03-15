@@ -6,6 +6,8 @@ import com.bank.services.WalletService;
 import com.bank.util.IConstant;
 import com.bank.util.PrintData;
 
+import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class MenuHandler {
@@ -24,40 +26,35 @@ public class MenuHandler {
             PrintData.displayMainMenu();
             int option = getOption();
 
-            switch (option) {
-                case 1:
-                    PrintData.print(IConstant.ENTER_NAME);
-                    name = SCANNER.nextLine();
-                    if (service.checkAccountExists(name)) {
-                        try {
+            try {
+                switch (option) {
+                    case 1:
+                        PrintData.print(IConstant.ENTER_NAME);
+                        name = SCANNER.nextLine();
+                        if (service.checkAccountExists(name)) {
                             throw new AccountAlreadyExistsException(String.format(IConstant.ACCOUNT_ALREADY_EXISTS, name));
-                        } catch (Exception ex) {
-                            PrintData.printError(ex.getMessage());
-                            break;
                         }
-                    }
-                    double amount = getAmount(IConstant.ENTER_DEPOSIT);
-                    getWalletMenu(service.createAccount(name, amount), service);
-                    break;
-                case 2:
-                    PrintData.print(IConstant.ENTER_NAME);
-                    name = SCANNER.nextLine();
-                    Account account = null;
-                    try {
-                        account = service.fetchAccount(name);
-                    } catch (Exception ex) {
-                        PrintData.printError(ex.getMessage());
+                        double amount = getAmount(IConstant.ENTER_DEPOSIT);
+                        getWalletMenu(service.createAccount(name, BigDecimal.valueOf(amount)), service);
                         break;
-                    }
-                    getWalletMenu(account, service);
-                    break;
-                case 3:
-                    PrintData.printAccountHolders(service.fetchAccountHolders());
-                    break;
-                default:
-                    exit = true;
-                    break;
+                    case 2:
+                        PrintData.print(IConstant.ENTER_NAME);
+                        name = SCANNER.nextLine();
+                        Account account = service.fetchAccount(name);
+                        getWalletMenu(account, service);
+                        break;
+                    case 3:
+                        PrintData.printAccountHolders(service.fetchAccountHolders());
+                        break;
+                    default:
+                        exit = true;
+                        break;
+                }
+            } catch (Exception ex) {
+                PrintData.printError(ex.getMessage());
             }
+
+
         }
         PrintData.print("Exiting wallet");
         SCANNER.close();
@@ -67,6 +64,7 @@ public class MenuHandler {
      * Wallet Menu options for the account holder
      *
      * @param account The account on which operations will be performed
+     * @param service Wallet service to perform operation on account
      */
     private static void getWalletMenu(Account account, WalletService service) {
         boolean exit = false;
@@ -75,43 +73,39 @@ public class MenuHandler {
             int option = getOption();
             double amount;
 
-            switch (option) {
-                case 1:
-                    double balance = account.getBalance();
-                    PrintData.print(IConstant.ACCOUNT_BALANCE, balance);
-                    break;
-                case 2:
-                    amount = getAmount(IConstant.ENTER_ADD_AMOUNT);
-                    account.addMoney(amount, false);
-                    PrintData.print(IConstant.ADD_SUCCESS, amount);
-                    break;
-                case 3:
-                    amount = getAmount(IConstant.ENTER_WITHDRAW_AMOUNT);
-                    try {
-                        account.withdrawMoney(amount, false);
-                        PrintData.print(IConstant.WITHDRAW_SUCCESS, amount);
-                    } catch (Exception ex) {
-                        PrintData.printError(ex.getMessage());
-                    }
-                    break;
-                case 4:
-                    PrintData.print(IConstant.TRANSFER_FUNDS_TO);
-                    String transferTo = SCANNER.nextLine();
-                    try {
+            try {
+                switch (option) {
+                    case 1:
+                        BigDecimal balance = service.getAccountBalance(account.getId());
+                        PrintData.print(IConstant.ACCOUNT_BALANCE, balance);
+                        break;
+                    case 2:
+                        amount = getAmount(IConstant.ENTER_ADD_AMOUNT);
+                        service.addMoney(Optional.ofNullable(null), BigDecimal.valueOf(amount), account.getId(), false);
+                        PrintData.print(IConstant.ADD_SUCCESS, BigDecimal.valueOf(amount));
+                        break;
+                    case 3:
+                        amount = getAmount(IConstant.ENTER_WITHDRAW_AMOUNT);
+                        service.withdrawMoney(Optional.ofNullable(null), BigDecimal.valueOf(amount), account.getId(), false);
+                        PrintData.print(IConstant.WITHDRAW_SUCCESS, BigDecimal.valueOf(amount));
+                        break;
+                    case 4:
+                        PrintData.print(IConstant.TRANSFER_FUNDS_TO);
+                        String transferTo = SCANNER.nextLine();
                         Account targetAccount = service.fetchAccount(transferTo);
                         amount = getAmount(IConstant.ENTER_TRANSFER_AMOUNT);
-                        service.transferFunds(account, targetAccount, amount);
+                        service.transferFunds(account, targetAccount, BigDecimal.valueOf(amount));
                         PrintData.print(IConstant.TRANSFER_SUCCESS);
-                    } catch (Exception ex) {
-                        PrintData.printError(ex.getMessage());
-                    }
-                    break;
-                case 5:
-                    PrintData.printTransactions(account.getTransactionHistory());
-                    break;
-                default :
-                    exit = true;
-                    break;
+                        break;
+                    case 5:
+                        PrintData.printTransactions(service.getTransactionHistory(account.getId()));
+                        break;
+                    default :
+                        exit = true;
+                        break;
+                }
+            } catch (Exception ex) {
+                PrintData.printError(ex.getMessage());
             }
         }
     }

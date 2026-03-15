@@ -16,3 +16,14 @@ Phase 1 :
 - TODO : Need to create account with a unique ID and need to handle concurrency for Map 
 
 How to Run : First execute -> javac Main.java followed by -> java Main
+
+Phase 2 :
+
+- Created a Postgre Connection Utility class to connect to the database.
+- Removed the accounts hashmap and instead created a table in database.
+- Added transactions database to store transactions of each user.
+- Added accounts and transactions repository to commit data to database.
+- Updated documentation of the methods in wallet service and account
+- Refactored Account.java as a simple POJO and moved the logic to wallet service.
+- Used BigDecimal for amount in transactions and account in place of double.
+- TODO : Didn't check if there were any transactions made from the execute query and handle exceptions. 

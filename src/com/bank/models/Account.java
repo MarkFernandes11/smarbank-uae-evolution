@@ -1,29 +1,43 @@
 package com.bank.models;
 
-import com.bank.exceptions.InsufficientBalanceException;
-import com.bank.util.IConstant;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.math.BigDecimal;
 
 public class Account {
+
+    private int id;
     private String accountHolder;
-    private double balance;
-    private List<Transaction> txnHistory;
+    private BigDecimal balance;
 
     /**
-     * Constructor to initialize a account based on the name and starting amount
+     * Constructor to initialize an account based on the name and starting amount
      *
      * @param accountHolder Name of the account holder
      * @param balance Amount to be added to the balance
      */
-    public Account (final String accountHolder, final double balance) {
+    public Account (final String accountHolder, final BigDecimal balance) {
         this.accountHolder = accountHolder;
         this.balance = balance;
-        txnHistory = new ArrayList<>();
-        txnHistory.add(new Transaction(balance, "CREDITED", LocalDateTime.now()));
-        // Need to generate a ID from account holder for transferring funds
+    }
+
+    /**
+     * Constructor to initialize an account based on the name, starting amount and id
+     *
+     * @param accountHolder Name of the account holder
+     * @param balance Amount to be added to the balance
+     * @param id id of the account holder
+     */
+    public Account (final String accountHolder, final BigDecimal balance, final int id) {
+        this.accountHolder = accountHolder;
+        this.balance = balance;
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     /**
@@ -35,45 +49,10 @@ public class Account {
     }
 
     /**
-     * Returns the balance in the account.
+     * Fetches the balance from account object
+     * @return Returns the balance in the account.
      */
-    public double getBalance() {
+    public BigDecimal getBalance() {
         return balance;
-    }
-
-    /**
-     * Adds money to the account if the amount is positive
-     *
-     * @param money the amount to be added
-     * @param transfer Whether it is a transfer request or not
-     */
-    public void addMoney(double money, boolean transfer) {
-        balance += money;
-        if (!transfer) {
-            txnHistory.add(new Transaction(money, "CREDITED", LocalDateTime.now()));
-        }
-    }
-
-    /**
-     * Withdraws money from the account if withdrawal possible
-     *
-     * @param money amount to be withdrawn
-     */
-    public void withdrawMoney(double money, boolean transfer) throws InsufficientBalanceException {
-        if ((balance - money) >= 0) {
-            balance -= money;
-            if (!transfer) {
-                txnHistory.add(new Transaction(money, "DEBITED", LocalDateTime.now()));
-            }
-        } else {
-            throw new InsufficientBalanceException(String.format(IConstant.INSUFFICIENT_BALANCE, balance));
-        }
-    }
-
-    /**
-     * Fetches the transaction history for the account holder
-     */
-    public List<Transaction> getTransactionHistory() {
-        return txnHistory;
     }
 }
