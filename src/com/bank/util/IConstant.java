@@ -31,5 +31,6 @@ public class IConstant {
     public static final String WITHDRAW_SUCCESS = "%.2f AED withdrawn from your account";
     public static final String NO_TRANSACTIONS = "No transactions to be displayed";
     public static final String TRANSFER_SUCCESS = "Funds transferred successfully";
+    public static final String ACCOUNT_CREATION_SUCCESS = "Account saved with account holder name : {}";
 
 }

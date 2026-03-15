@@ -3,6 +3,7 @@ package com.bank.repositories;
 import com.bank.exceptions.AccountNotFoundException;
 import com.bank.models.Account;
 import com.bank.util.IConstant;
+import com.bank.util.PrintData;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -28,7 +29,7 @@ public class AccountRepository {
                 if (generatedKeys.next()) {
                     int generatedId = generatedKeys.getInt(1);
                     account.setId(generatedId);
-                    System.out.println("DEBUG: Account saved with ID: " + generatedId);
+                    PrintData.print(String.format(IConstant.ACCOUNT_CREATION_SUCCESS, account.getAccountHolder()));
                 }
             }
         } catch (SQLException e) {
@@ -65,7 +66,6 @@ public class AccountRepository {
             statement.setInt(2, accountId);
 
             statement.executeUpdate();
-            System.out.println("DEBUG: Account updated successfully.");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

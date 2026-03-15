@@ -81,12 +81,12 @@ public class MenuHandler {
                         break;
                     case 2:
                         amount = getAmount(IConstant.ENTER_ADD_AMOUNT);
-                        service.addMoney(Optional.of(null), BigDecimal.valueOf(amount), account.getId(), false);
+                        service.addMoney(Optional.ofNullable(null), BigDecimal.valueOf(amount), account.getId(), false);
                         PrintData.print(IConstant.ADD_SUCCESS, BigDecimal.valueOf(amount));
                         break;
                     case 3:
                         amount = getAmount(IConstant.ENTER_WITHDRAW_AMOUNT);
-                        service.withdrawMoney(Optional.of(null), BigDecimal.valueOf(amount), account.getId(), false);
+                        service.withdrawMoney(Optional.ofNullable(null), BigDecimal.valueOf(amount), account.getId(), false);
                         PrintData.print(IConstant.WITHDRAW_SUCCESS, BigDecimal.valueOf(amount));
                         break;
                     case 4:
