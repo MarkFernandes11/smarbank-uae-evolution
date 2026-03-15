@@ -36,13 +36,14 @@ public class TransactionRepository {
 
             statement.setInt(1, accountId);
 
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                BigDecimal amount = resultSet.getBigDecimal("amount");
-                String transactionType = resultSet.getString("transaction_type");
-                LocalDateTime timeStamp = resultSet.getObject("timestamp", LocalDateTime.class);
-                Transaction transaction = new Transaction(amount, transactionType, timeStamp);
-                transactions.add(transaction);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    BigDecimal amount = resultSet.getBigDecimal("amount");
+                    String transactionType = resultSet.getString("transaction_type");
+                    LocalDateTime timeStamp = resultSet.getObject("timestamp", LocalDateTime.class);
+                    Transaction transaction = new Transaction(amount, transactionType, timeStamp);
+                    transactions.add(transaction);
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

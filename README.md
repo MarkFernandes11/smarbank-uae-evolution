@@ -26,3 +26,4 @@ Phase 2 :
 - Updated documentation of the methods in wallet service and account
 - Refactored Account.java as a simple POJO and moved the logic to wallet service.
 - Used BigDecimal for amount in transactions and account in place of double.
+- TODO : Didn't check if there were any transactions made from the execute query and handle exceptions. 

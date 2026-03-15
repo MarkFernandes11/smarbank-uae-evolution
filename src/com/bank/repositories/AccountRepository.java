@@ -45,12 +45,13 @@ public class AccountRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, name);
 
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                String accountHolder = resultSet.getString("holder_name");
-                BigDecimal balance = resultSet.getBigDecimal("balance");
-                int id = resultSet.getInt("id");
-                return Optional.of(new Account(accountHolder, balance, id));
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    String accountHolder = resultSet.getString("holder_name");
+                    BigDecimal balance = resultSet.getBigDecimal("balance");
+                    int id = resultSet.getInt("id");
+                    return Optional.of(new Account(accountHolder, balance, id));
+                }
             }
             return Optional.ofNullable(null);
         } catch (SQLException e) {
@@ -75,8 +76,8 @@ public class AccountRepository {
         List<String> userNames = new ArrayList<>();
         String sql = "SELECT holder_name from accounts";
 
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            ResultSet resultSet = statement.executeQuery();
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
                 String accountHolder = resultSet.getString("holder_name");
                 userNames.add(accountHolder);
@@ -93,10 +94,11 @@ public class AccountRepository {
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                BigDecimal balance = resultSet.getBigDecimal("balance");
-                return balance;
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    BigDecimal balance = resultSet.getBigDecimal("balance");
+                    return balance;
+                }
             }
             return BigDecimal.ZERO;
         } catch (SQLException e) {
