@@ -1,4 +1,4 @@
-package com.bank.models;
+package main.java.com.bank.api.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

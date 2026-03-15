@@ -1,6 +1,6 @@
-package com.bank.util;
+package main.java.com.bank.api.util;
 
-import com.bank.models.Transaction;
+import main.java.com.bank.api.model.Transaction;
 
 import java.math.BigDecimal;
 import java.util.List;

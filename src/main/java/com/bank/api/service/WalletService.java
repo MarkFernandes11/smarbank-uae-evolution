@@ -1,14 +1,14 @@
-package com.bank.services;
+package main.java.com.bank.api.service;
 
-import com.bank.exceptions.InsufficientBalanceException;
-import com.bank.exceptions.SelfTransferException;
-import com.bank.models.Transaction;
-import com.bank.repositories.AccountRepository;
-import com.bank.repositories.TransactionRepository;
-import com.bank.util.DBConnection.PostgresConnection;
-import com.bank.util.IConstant;
-import com.bank.exceptions.AccountNotFoundException;
-import com.bank.models.Account;
+import main.java.com.bank.api.exception.InsufficientBalanceException;
+import main.java.com.bank.api.exception.SelfTransferException;
+import main.java.com.bank.api.model.Transaction;
+import main.java.com.bank.api.repository.AccountRepository;
+import main.java.com.bank.api.repository.TransactionRepository;
+import main.java.com.bank.api.util.DBConnection.PostgresConnection;
+import main.java.com.bank.api.util.IConstant;
+import main.java.com.bank.api.exception.AccountNotFoundException;
+import main.java.com.bank.api.model.Account;
 
 import java.math.BigDecimal;
 import java.sql.Connection;

@@ -1,6 +1,6 @@
-package com.bank.repositories;
+package main.java.com.bank.api.repository;
 
-import com.bank.models.Transaction;
+import main.java.com.bank.api.model.Transaction;
 
 import java.math.BigDecimal;
 import java.sql.Connection;

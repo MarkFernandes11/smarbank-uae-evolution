@@ -1,4 +1,4 @@
-package com.bank.util;
+package main.java.com.bank.api.util;
 
 public class IConstant {
 

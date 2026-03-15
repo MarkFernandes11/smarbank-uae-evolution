@@ -1,5 +1,5 @@
-import com.bank.services.WalletService;
-import com.bank.ui.MenuHandler;
+import main.java.com.bank.api.service.WalletService;
+import main.java.com.bank.api.ui.MenuHandler;
 
 public class Main {
     public static void main(String[] args) {

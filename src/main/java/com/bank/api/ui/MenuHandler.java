@@ -1,10 +1,10 @@
-package com.bank.ui;
+package main.java.com.bank.api.ui;
 
-import com.bank.exceptions.AccountAlreadyExistsException;
-import com.bank.models.Account;
-import com.bank.services.WalletService;
-import com.bank.util.IConstant;
-import com.bank.util.PrintData;
+import main.java.com.bank.api.exception.AccountAlreadyExistsException;
+import main.java.com.bank.api.model.Account;
+import main.java.com.bank.api.service.WalletService;
+import main.java.com.bank.api.util.IConstant;
+import main.java.com.bank.api.util.PrintData;
 
 import java.math.BigDecimal;
 import java.util.Optional;
