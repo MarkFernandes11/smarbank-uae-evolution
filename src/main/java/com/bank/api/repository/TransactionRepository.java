@@ -1,53 +1,8 @@
-package main.java.com.bank.api.repository;
+package com.bank.api.repository;
 
-import main.java.com.bank.api.model.Transaction;
+import com.bank.api.model.Transaction;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+public interface TransactionRepository extends JpaRepository<Transaction, Long>  {
 
-public class TransactionRepository {
-
-    public void saveTransaction(Connection connection, int accountId, Transaction txn) {
-        String sql = "INSERT INTO transactions (account_id, amount, transaction_type) VALUES (?, ?, ?)";
-
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-
-            statement.setInt(1, accountId);
-            statement.setBigDecimal(2, txn.amount());
-            statement.setString(3, txn.transactionType());
-
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public List<Transaction> getTransactions(Connection connection, int accountId) {
-        String sql = "SELECT * FROM transactions WHERE account_id = ?";
-        List<Transaction> transactions = new ArrayList<>();
-
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-
-            statement.setInt(1, accountId);
-
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    BigDecimal amount = resultSet.getBigDecimal("amount");
-                    String transactionType = resultSet.getString("transaction_type");
-                    LocalDateTime timeStamp = resultSet.getObject("timestamp", LocalDateTime.class);
-                    Transaction transaction = new Transaction(amount, transactionType, timeStamp);
-                    transactions.add(transaction);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return transactions;
-    }
 }

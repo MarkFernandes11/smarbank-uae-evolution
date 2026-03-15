@@ -1,4 +1,4 @@
-package main.java.com.bank.api.exception;
+package com.bank.api.exception;
 
 public class SelfTransferException extends BankingException {
     public SelfTransferException(String message) {

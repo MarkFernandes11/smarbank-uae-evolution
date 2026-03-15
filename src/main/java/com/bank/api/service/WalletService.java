@@ -1,23 +1,30 @@
-package main.java.com.bank.api.service;
+package com.bank.api.service;
 
-import main.java.com.bank.api.exception.InsufficientBalanceException;
-import main.java.com.bank.api.exception.SelfTransferException;
-import main.java.com.bank.api.model.Transaction;
-import main.java.com.bank.api.repository.AccountRepository;
-import main.java.com.bank.api.repository.TransactionRepository;
-import main.java.com.bank.api.util.DBConnection.PostgresConnection;
-import main.java.com.bank.api.util.IConstant;
-import main.java.com.bank.api.exception.AccountNotFoundException;
-import main.java.com.bank.api.model.Account;
+import com.bank.api.exception.InsufficientBalanceException;
+import com.bank.api.exception.SelfTransferException;
+import com.bank.api.dto.TransactionDTO;
+import com.bank.api.repository.AccountRepository;
+import com.bank.api.repository.TransactionRepository;
+import com.bank.api.util.DBConnection.PostgresConnection;
+import com.bank.api.util.IConstant;
+import com.bank.api.exception.AccountNotFoundException;
+import com.bank.api.model.Account;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 
+@Service
 public class WalletService {
-    private AccountRepository accountRepository = new AccountRepository();
-    private TransactionRepository transactionRepository = new TransactionRepository();
+    private AccountRepository accountRepository;
+    private TransactionRepository transactionRepository;
+
+    public WalletService(AccountRepository accountRepository, TransactionRepository transactionRepository) {
+        this.accountRepository = accountRepository;
+        this.transactionRepository = transactionRepository;
+    }
 
     /**
      * Creates a new account with name and initial deposit and saves in db
@@ -32,8 +39,8 @@ public class WalletService {
             connection = PostgresConnection.getConnection();
             connection.setAutoCommit(false);
             Account account = new Account(name, amount);
-            accountRepository.saveAccount(connection, account);
-            transactionRepository.saveTransaction(connection, account.getId(), Transaction.getTransaction(amount, "INITIAL CREDIT"));
+            account = accountRepository.save(account);
+            transactionRepository.saveTransaction(connection, account.getId(), TransactionDTO.getTransaction(amount, "INITIAL CREDIT"));
             connection.commit();
             return account;
         } catch (Exception e) {
@@ -76,14 +83,9 @@ public class WalletService {
      * Checks if account exists
      * @param name Name of account holder
      * @return if account exists it returns true else false
-     * @throws SQLException Thrown exception when some issue in interacting with db
      */
-    public boolean checkAccountExists(String name) throws SQLException {
-        try (Connection connection = PostgresConnection.getConnection()) {
-            return accountRepository.findByName(connection, name).isPresent();
-        } catch (Exception e) {
-            throw e;
-        }
+    public boolean checkAccountExists(String name) {
+        return accountRepository.findByAccountHolder(name).isPresent();
     }
 
     /**
@@ -91,28 +93,18 @@ public class WalletService {
      * @param name Checks if account exists for the provided name
      * @return Returns the account found
      * @throws AccountNotFoundException Exception is thrown if account not found
-     * @throws SQLException Thrown exception when some issue in interacting with db
      */
-    public Account fetchAccount(final String name) throws SQLException, AccountNotFoundException {
-        try (Connection connection = PostgresConnection.getConnection()) {
-            return accountRepository.findByName(connection, name)
-                    .orElseThrow(() -> new AccountNotFoundException(String.format(IConstant.ACCOUNT_NOT_FOUND, name)));
-        } catch (Exception e) {
-            throw e;
-        }
+    public Account fetchAccount(final String name) throws AccountNotFoundException {
+        return accountRepository.findByAccountHolder(name)
+                .orElseThrow(() -> new AccountNotFoundException(String.format(IConstant.ACCOUNT_NOT_FOUND, name)));
     }
 
     /**
      * Fetches all the account holders
      * @return List of all account holder names is returned
-     * @throws SQLException Thrown exception when some issue in interacting with db
      */
-    public List<String> fetchAccountHolders() throws SQLException {
-        try (Connection connection = PostgresConnection.getConnection()) {
-            return accountRepository.getAllUsernames(connection);
-        } catch (Exception e) {
-            throw e;
-        }
+    public List<String> fetchAccountHolders() {
+        return accountRepository.getAllAccountHolder();
     }
 
     /**
@@ -134,10 +126,10 @@ public class WalletService {
             }
 
             withdrawMoney(Optional.of(connection), amount, account.getId(), true);
-            transactionRepository.saveTransaction(connection, account.getId(), Transaction.getTransaction(amount, "Sent to " + targetAccount.getAccountHolder()));
+            transactionRepository.saveTransaction(connection, account.getId(), TransactionDTO.getTransaction(amount, "Sent to " + targetAccount.getAccountHolder()));
 
             addMoney(Optional.of(connection), amount, targetAccount.getId(), true);
-            transactionRepository.saveTransaction(connection, targetAccount.getId(), Transaction.getTransaction(amount, "Received from " + account.getAccountHolder()));
+            transactionRepository.saveTransaction(connection, targetAccount.getId(), TransactionDTO.getTransaction(amount, "Received from " + account.getAccountHolder()));
 
             connection.commit();
         } catch (Exception e) {
@@ -156,17 +148,17 @@ public class WalletService {
      * @param transfer Whether it is a transfer request or not
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
-    public void addMoney(Optional<Connection> connectionOpt, BigDecimal money, int accountId, boolean transfer) throws SQLException {
+    public void addMoney(Optional<Connection> connectionOpt, BigDecimal money, Long accountId, boolean transfer) throws SQLException {
         Connection connection = null;
         try {
             connection = connectionOpt.isPresent() ? connectionOpt.get() : PostgresConnection.getConnection();
             connection.setAutoCommit(false);
 
-            BigDecimal currentBalance = accountRepository.getBalance(connection, accountId);
+            BigDecimal currentBalance = accountRepository.getBalanceById(accountId);
             currentBalance = currentBalance.add(money);
-            accountRepository.updateBalance(connection, accountId, currentBalance);
+            accountRepository.updateBalance(accountId, currentBalance);
             if (!transfer) {
-                transactionRepository.saveTransaction(connection, accountId, Transaction.getTransaction(money, "CREDITED"));
+                transactionRepository.saveTransaction(connection, accountId, TransactionDTO.getTransaction(money, "CREDITED"));
             }
             if (!transfer) connection.commit();
         } catch (Exception e) {
@@ -190,18 +182,18 @@ public class WalletService {
      * @throws InsufficientBalanceException Thrown when balance is insufficient
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
-    public void withdrawMoney(Optional<Connection> connectionOpt, BigDecimal money, int accountId, boolean transfer) throws InsufficientBalanceException, SQLException {
+    public void withdrawMoney(Optional<Connection> connectionOpt, BigDecimal money, Long accountId, boolean transfer) throws InsufficientBalanceException, SQLException {
         Connection connection = null;
         boolean insufficientBalance = false;
         try {
             connection = connectionOpt.isPresent() ? connectionOpt.get() : PostgresConnection.getConnection();
             connection.setAutoCommit(false);
-            BigDecimal currentBalance = accountRepository.getBalance(connection, accountId);
+            BigDecimal currentBalance = accountRepository.getBalanceById(accountId);
             if (!(currentBalance.subtract(money).compareTo(BigDecimal.ZERO) < 0)) {
                 currentBalance = currentBalance.subtract(money);
-                accountRepository.updateBalance(connection, accountId, currentBalance);
+                accountRepository.updateBalance(accountId, currentBalance);
                 if (!transfer) {
-                    transactionRepository.saveTransaction(connection, accountId, Transaction.getTransaction(money, "DEBITED"));
+                    transactionRepository.saveTransaction(connection, accountId, TransactionDTO.getTransaction(money, "DEBITED"));
                 }
                 if (!transfer) connection.commit();
             } else {
@@ -225,12 +217,8 @@ public class WalletService {
      * @param accountId accountId of the account holder
      * @return Returns the balance in the account
      */
-    public BigDecimal getAccountBalance(final int accountId) {
-        try (Connection connection = PostgresConnection.getConnection()) {
-            return accountRepository.getBalance(connection, accountId);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public BigDecimal getAccountBalance(final Long accountId) {
+        return accountRepository.getBalanceById(accountId);
     }
 
     /**
@@ -238,7 +226,7 @@ public class WalletService {
      * @param accountId accountId of the account holder
      * @return list of transactions of the account holder
      */
-    public List<Transaction> getTransactionHistory(final int accountId) {
+    public List<TransactionDTO> getTransactionHistory(final int accountId) {
         try (Connection connection = PostgresConnection.getConnection()) {
             return transactionRepository.getTransactions(connection, accountId);
         } catch (SQLException e) {

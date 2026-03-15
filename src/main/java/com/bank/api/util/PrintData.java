@@ -1,6 +1,6 @@
-package main.java.com.bank.api.util;
+package com.bank.api.util;
 
-import main.java.com.bank.api.model.Transaction;
+import com.bank.api.dto.TransactionDTO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -45,7 +45,7 @@ public class PrintData {
         accountHolders.forEach(System.out::println);
     }
 
-    public static void printTransactions(List<Transaction> transactionHistory) {
+    public static void printTransactions(List<TransactionDTO> transactionHistory) {
         if (transactionHistory.isEmpty()) {
             print(IConstant.NO_TRANSACTIONS);
         } else {

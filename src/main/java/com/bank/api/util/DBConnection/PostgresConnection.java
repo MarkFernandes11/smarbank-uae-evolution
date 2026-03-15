@@ -1,4 +1,4 @@
-package main.java.com.bank.api.util.DBConnection;
+package com.bank.api.util.DBConnection;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
