@@ -43,7 +43,7 @@ public class WalletService {
             connection.setAutoCommit(false);
             Account.AccountBuilder accountBuilder = new Account.AccountBuilder().builder().withAccountHolder(name).withBalance(amount);
             Account account = new Account(accountBuilder);
-            account = accountRepository.save(account);
+            account = accountRepository.saveAndFlush(account);
             transactionRepository.save(getTransaction(account, "INITIAL CREDIT", amount));
             connection.commit();
             return account;
@@ -118,7 +118,7 @@ public class WalletService {
      * @return List of all account holder names is returned
      */
     public List<String> fetchAccountHolders() {
-        return accountRepository.getAllAccountHolder();
+        return accountRepository.getAllAccountHolders();
     }
 
     /**

@@ -1,8 +1,11 @@
 package com.bank.api.repository;
 
 import com.bank.api.model.Account;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -14,10 +17,13 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     Optional<Account> findByAccountHolder(String name);
 
-    List<String> getAllAccountHolder();
+    @Query(value = "SELECT accountHolder from Account")
+    List<String> getAllAccountHolders();
 
     BigDecimal getBalanceById(Long id);
 
-    @Query(value = "UPDATE accounts SET balance = :newBalance WHERE id = :accountId")
-    int updateBalance(Long accountId, BigDecimal newBalance);
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE accounts SET balance = :newBalance WHERE id = :accountId", nativeQuery = true)
+    int updateBalance(@Param("accountId") Long accountId, @Param("newBalance") BigDecimal newBalance);
 }
