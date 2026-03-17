@@ -28,7 +28,13 @@ public class Transaction {
     @JoinColumn(name = "account_id")
     private Account account;
 
-    public Transaction() {}
+    public Transaction(TransactionBuilder builder) {
+        this.id = builder.id;
+        this.amount = builder.amount;
+        this.transactionType = builder.transactionType;
+        this.timeStamp = builder.timeStamp;
+        this.account = builder.account;
+    }
 
     public Long getId() {
         return id;
@@ -64,5 +70,46 @@ public class Transaction {
 
     public void setAccount(Account account) {
         this.account = account;
+    }
+
+    public static final class TransactionBuilder {
+        private Long id;
+        private BigDecimal amount;
+        private String transactionType;
+        private LocalDateTime timeStamp;
+        private Account account;
+
+        public TransactionBuilder() {}
+
+        public TransactionBuilder builder() {return this;}
+
+        public TransactionBuilder withId(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public TransactionBuilder withAmount(BigDecimal amount) {
+            this.amount = amount;
+            return this;
+        }
+
+        public TransactionBuilder withTransactionType(String transactionType) {
+            this.transactionType = transactionType;
+            return this;
+        }
+
+        public TransactionBuilder withTimestamp(LocalDateTime timeStamp) {
+            this.timeStamp = timeStamp;
+            return this;
+        }
+
+        public TransactionBuilder withAccount(Account account) {
+            this.account = account;
+            return this;
+        }
+
+        public Transaction build() {
+            return new Transaction(this);
+        }
     }
 }

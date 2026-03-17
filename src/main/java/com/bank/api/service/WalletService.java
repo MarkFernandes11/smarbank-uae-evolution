@@ -3,6 +3,7 @@ package com.bank.api.service;
 import com.bank.api.exception.InsufficientBalanceException;
 import com.bank.api.exception.SelfTransferException;
 import com.bank.api.dto.TransactionDTO;
+import com.bank.api.model.Transaction;
 import com.bank.api.repository.AccountRepository;
 import com.bank.api.repository.TransactionRepository;
 import com.bank.api.util.DBConnection.PostgresConnection;
@@ -14,7 +15,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class WalletService {
@@ -38,9 +41,10 @@ public class WalletService {
         try {
             connection = PostgresConnection.getConnection();
             connection.setAutoCommit(false);
-            Account account = new Account(name, amount);
+            Account.AccountBuilder accountBuilder = new Account.AccountBuilder().builder().withAccountHolder(name).withBalance(amount);
+            Account account = new Account(accountBuilder);
             account = accountRepository.save(account);
-            transactionRepository.saveTransaction(connection, account.getId(), TransactionDTO.getTransaction(amount, "INITIAL CREDIT"));
+            transactionRepository.save(getTransaction(account, "INITIAL CREDIT", amount));
             connection.commit();
             return account;
         } catch (Exception e) {
@@ -49,6 +53,16 @@ public class WalletService {
         } finally {
             closeConnection(connection);
         }
+    }
+
+    private Transaction getTransaction(Account account, String transactionType, BigDecimal amount) {
+        Transaction transaction = new Transaction.TransactionBuilder().builder()
+                .withTransactionType(transactionType)
+                .withAccount(account)
+                .withTimestamp(LocalDateTime.now())
+                .withAmount(amount)
+                .build();
+        return transaction;
     }
 
     /**
@@ -126,10 +140,10 @@ public class WalletService {
             }
 
             withdrawMoney(Optional.of(connection), amount, account.getId(), true);
-            transactionRepository.saveTransaction(connection, account.getId(), TransactionDTO.getTransaction(amount, "Sent to " + targetAccount.getAccountHolder()));
+            transactionRepository.save(getTransaction(account, "Sent to " + targetAccount.getAccountHolder(), amount));
 
             addMoney(Optional.of(connection), amount, targetAccount.getId(), true);
-            transactionRepository.saveTransaction(connection, targetAccount.getId(), TransactionDTO.getTransaction(amount, "Received from " + account.getAccountHolder()));
+            transactionRepository.save(getTransaction(targetAccount, "Received from " + account.getAccountHolder(), amount));
 
             connection.commit();
         } catch (Exception e) {
@@ -158,7 +172,8 @@ public class WalletService {
             currentBalance = currentBalance.add(money);
             accountRepository.updateBalance(accountId, currentBalance);
             if (!transfer) {
-                transactionRepository.saveTransaction(connection, accountId, TransactionDTO.getTransaction(money, "CREDITED"));
+                // TODO need to fix this account null value
+                transactionRepository.save(getTransaction(null, "CREDITED", money));
             }
             if (!transfer) connection.commit();
         } catch (Exception e) {
@@ -193,7 +208,9 @@ public class WalletService {
                 currentBalance = currentBalance.subtract(money);
                 accountRepository.updateBalance(accountId, currentBalance);
                 if (!transfer) {
-                    transactionRepository.saveTransaction(connection, accountId, TransactionDTO.getTransaction(money, "DEBITED"));
+                    // TODO need to fix this account null value
+                    transactionRepository.save(null);
+//                    transactionRepository.saveTransaction(connection, accountId, TransactionDTO.getTransaction(money, "DEBITED"));
                 }
                 if (!transfer) connection.commit();
             } else {
@@ -226,11 +243,12 @@ public class WalletService {
      * @param accountId accountId of the account holder
      * @return list of transactions of the account holder
      */
-    public List<TransactionDTO> getTransactionHistory(final int accountId) {
-        try (Connection connection = PostgresConnection.getConnection()) {
-            return transactionRepository.getTransactions(connection, accountId);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public List<TransactionDTO> getTransactionHistory(final Long accountId) {
+        List<Transaction> transactions = transactionRepository.findAllTransactionByAccountId(accountId);
+        return transactions.stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+
+    private TransactionDTO mapToDTO(Transaction transaction) {
+        return new TransactionDTO(transaction.getAmount(), transaction.getTransactionType(), transaction.getTimeStamp());
     }
 }

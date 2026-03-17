@@ -45,27 +45,19 @@ public class Account {
     public Account () {}
 
     /**
-     * Constructor to initialize an account based on the name and starting amount
+     * Constructor to initialize an account based on the accountBuilder
      *
-     * @param accountHolder Name of the account holder
-     * @param balance Amount to be added to the balance
+     * @param accountBuilder Account Builder to populate the details of the account holder
      */
-    public Account (final String accountHolder, final BigDecimal balance) {
-        this.accountHolder = accountHolder;
-        this.balance = balance;
-    }
-
-    /**
-     * Constructor to initialize an account based on the name, starting amount and id
-     *
-     * @param accountHolder Name of the account holder
-     * @param balance Amount to be added to the balance
-     * @param id id of the account holder
-     */
-    public Account (final String accountHolder, final BigDecimal balance, final Long id) {
-        this.accountHolder = accountHolder;
-        this.balance = balance;
-        this.id = id;
+    public Account(AccountBuilder accountBuilder) {
+        this.id = accountBuilder.id;
+        this.balance = accountBuilder.balance;
+        this.accountHolder = accountBuilder.accountHolder;
+        this.deleted = accountBuilder.deleted;
+        this.accountType = accountBuilder.accountType;
+        this.createdAt = accountBuilder.createdAt;
+        this.updatedAt = accountBuilder.updatedAt;
+        this.transactions = accountBuilder.transactions;
     }
 
     public Long getId() {
@@ -131,4 +123,67 @@ public class Account {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public static final class AccountBuilder {
+        private Long id;
+        private String accountHolder;
+        private BigDecimal balance;
+        private boolean deleted;
+        private AccountType accountType;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+        private List<Transaction> transactions;
+
+        public AccountBuilder() {}
+
+        public AccountBuilder builder() {
+            return this;
+        }
+
+        public AccountBuilder withId(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public AccountBuilder withAccountHolder(String accountHolder) {
+            this.accountHolder = accountHolder;
+            return this;
+        }
+
+        public AccountBuilder withBalance(BigDecimal balance) {
+            this.balance = balance;
+            return this;
+        }
+
+        public AccountBuilder withDeleted(boolean deleted) {
+            this.deleted = deleted;
+            return this;
+        }
+
+        public AccountBuilder withAccountType(AccountType accountType) {
+            this.accountType = accountType;
+            return this;
+        }
+
+        public AccountBuilder withCreatedAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public AccountBuilder withUpdatedAt(LocalDateTime updatedAt) {
+            this.updatedAt = updatedAt;
+            return this;
+        }
+
+        public AccountBuilder withTransactions(List<Transaction> transactions) {
+            this.transactions = transactions;
+            return this;
+        }
+
+        public Account build() {
+            return new Account(this);
+        }
+
+    }
+
 }
