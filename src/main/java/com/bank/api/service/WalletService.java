@@ -2,14 +2,11 @@ package com.bank.api.service;
 
 import com.bank.api.dto.*;
 import com.bank.api.enums.AccountType;
-import com.bank.api.exception.AccountAlreadyExistsException;
-import com.bank.api.exception.InsufficientBalanceException;
-import com.bank.api.exception.SelfTransferException;
+import com.bank.api.exception.*;
 import com.bank.api.model.Transaction;
 import com.bank.api.repository.AccountRepository;
 import com.bank.api.repository.TransactionRepository;
 import com.bank.api.util.IConstant;
-import com.bank.api.exception.AccountNotFoundException;
 import com.bank.api.model.Account;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,10 +33,11 @@ public class WalletService {
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
     @Transactional(rollbackFor = Exception.class)
-    public AccountResponse createAccount(final AccountRequest request) throws AccountAlreadyExistsException {
+    public AccountResponse createAccount(final AccountRequest request) throws AccountAlreadyExistsException, NegativeOrZeroAmountException {
         try {
             String name = request.accountHolder();
             BigDecimal amount = request.balance();
+            checkNegativeAmount(amount);
             AccountType type = Optional.ofNullable(request.accountType()).orElse(AccountType.SAVINGS);
 
             if (checkAccountExists(name)) {
@@ -58,6 +56,12 @@ public class WalletService {
             return mapToAccountResponse(account);
         } catch (Exception e) {
             throw e;
+        }
+    }
+
+    private void checkNegativeAmount(BigDecimal amount) throws NegativeOrZeroAmountException {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new NegativeOrZeroAmountException(IConstant.ENTER_POSITIVE_AMOUNT);
         }
     }
 
@@ -110,8 +114,9 @@ public class WalletService {
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
     @Transactional(rollbackFor = Exception.class)
-    public BigDecimal transferFunds(final TransferFundsRequest request) throws SelfTransferException, InsufficientBalanceException, AccountNotFoundException {
+    public BigDecimal transferFunds(final TransferFundsRequest request) throws SelfTransferException, InsufficientBalanceException, AccountNotFoundException, NegativeOrZeroAmountException {
         try {
+            checkNegativeAmount(request.amount());
             if (request.accountId().equals(request.targetAccountId())) {
                 throw new SelfTransferException(IConstant.SELF_TRANSFER_ERROR);
             }
@@ -134,8 +139,9 @@ public class WalletService {
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
     @Transactional(rollbackFor = Exception.class)
-    public BigDecimal addMoney(TransferRequest request, String transferDesc) throws AccountNotFoundException {
+    public BigDecimal addMoney(TransferRequest request, String transferDesc) throws AccountNotFoundException, NegativeOrZeroAmountException {
         try {
+            checkNegativeAmount(request.amount());
             Account account = accountRepository.findById(request.accountId()).orElseThrow(() -> new AccountNotFoundException(IConstant.ACCOUNT_NOT_FOUND_WITH_ID));;
             return addMoney(account, request.amount(), transferDesc);
         } catch (Exception e) {
@@ -160,8 +166,9 @@ public class WalletService {
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
     @Transactional(rollbackFor = Exception.class)
-    public BigDecimal withdrawMoney(TransferRequest request, String transferDesc) throws InsufficientBalanceException, AccountNotFoundException {
+    public BigDecimal withdrawMoney(TransferRequest request, String transferDesc) throws InsufficientBalanceException, AccountNotFoundException, NegativeOrZeroAmountException {
         try {
+            checkNegativeAmount(request.amount());
             Account account = accountRepository.findById(request.accountId()).orElseThrow(() -> new AccountNotFoundException(IConstant.ACCOUNT_NOT_FOUND_WITH_ID));;
             return withdrawMoney(account, request.amount(), transferDesc);
         } catch (Exception e) {
@@ -170,7 +177,7 @@ public class WalletService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public BigDecimal withdrawMoney(Account account, BigDecimal amount, String transferDesc) throws InsufficientBalanceException, AccountNotFoundException {
+    public BigDecimal withdrawMoney(Account account, BigDecimal amount, String transferDesc) throws InsufficientBalanceException {
         try {
             BigDecimal currentBalance = account.getBalance();
             if (!(currentBalance.subtract(amount).compareTo(BigDecimal.ZERO) < 0)) {

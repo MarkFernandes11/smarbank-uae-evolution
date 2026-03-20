@@ -4,6 +4,7 @@ import com.bank.api.dto.AccountRequest;
 import com.bank.api.dto.AccountResponse;
 import com.bank.api.exception.AccountAlreadyExistsException;
 import com.bank.api.exception.AccountNotFoundException;
+import com.bank.api.exception.NegativeOrZeroAmountException;
 import com.bank.api.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class AccountController {
     }
 
     @PostMapping(value = "/create")
-    public AccountResponse saveAccount(@RequestBody AccountRequest request) throws AccountAlreadyExistsException {
+    public AccountResponse saveAccount(@RequestBody AccountRequest request) throws AccountAlreadyExistsException, NegativeOrZeroAmountException {
         return walletService.createAccount(request);
     }
 
