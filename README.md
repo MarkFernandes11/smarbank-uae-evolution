@@ -41,4 +41,4 @@ How to Run : First execute -> javac Main.java followed by -> java Main
 - Removed Main.java, MenuHandler instead introduced controllers to communicate with server.
 - Got tomcat server running with database initialized.
 - Fixed and modified the logic for existing services to work with existing spring boot code structure.
-- TDOD : Exceptions to be handled globally to avoid 500 error codes 
+- TODO : Exceptions to be handled globally to avoid 500 error codes, Documentation to be updated 
