@@ -21,6 +21,7 @@ public class IConstant {
     // Exception messages
     public static final String ACCOUNT_ALREADY_EXISTS = "Account already exists with name %s";
     public static final String ACCOUNT_NOT_FOUND = "Account not found with name %s";
+    public static final String ACCOUNT_NOT_FOUND_WITH_ID = "Account not found";
     public static final String INSUFFICIENT_BALANCE = "Insufficient balance in your account. Available balance is %.2f AED";
     public static final String SELF_TRANSFER_ERROR = "Self transfer not supported";
 

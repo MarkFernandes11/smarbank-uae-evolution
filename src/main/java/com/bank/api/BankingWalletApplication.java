@@ -19,6 +19,6 @@ public class BankingWalletApplication {
         // This line launches the embedded Tomcat server (default port 8080)
         SpringApplication.run(BankingWalletApplication.class, args);
 
-        System.out.println("Banking Wallet API is running smoothly on port 8080...");
+        System.out.println("Banking Wallet API is running smoothly");
     }
 }

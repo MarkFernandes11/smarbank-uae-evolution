@@ -17,10 +17,11 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     Optional<Account> findByAccountHolder(String name);
 
-    @Query(value = "SELECT accountHolder from Account")
+    @Query(value = "SELECT accountHolder FROM Account WHERE deleted = false")
     List<String> getAllAccountHolders();
 
-    BigDecimal getBalanceById(Long id);
+    @Query(value = "SELECT a.balance FROM accounts a WHERE a.id = ? and a.deleted = false", nativeQuery = true)
+    Optional<BigDecimal> getBalanceById(Long id);
 
     @Modifying
     @Transactional

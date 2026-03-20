@@ -1,5 +1,9 @@
 package com.bank.api.service;
 
+import com.bank.api.dto.AccountRequest;
+import com.bank.api.dto.AccountResponse;
+import com.bank.api.enums.AccountType;
+import com.bank.api.exception.AccountAlreadyExistsException;
 import com.bank.api.exception.InsufficientBalanceException;
 import com.bank.api.exception.SelfTransferException;
 import com.bank.api.dto.TransactionDTO;
@@ -30,22 +34,38 @@ public class WalletService {
 
     /**
      * Creates a new account with name and initial deposit and saves in db
-     * @param name Name of account holder
-     * @param amount Initial deposit
+     * @param request Consistin of name and initial deposit of account holder
      * @return Returns the account created
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
     @Transactional
-    public Account createAccount(final String name, final BigDecimal amount) throws SQLException {
+    public AccountResponse createAccount(final AccountRequest request) throws AccountAlreadyExistsException {
         try {
-            Account.AccountBuilder accountBuilder = new Account.AccountBuilder().builder().withAccountHolder(name).withBalance(amount);
+            String name = request.accountHolder();
+            BigDecimal amount = request.balance();
+            AccountType type = Optional.ofNullable(request.accountType()).orElse(AccountType.SAVINGS);
+
+            if (checkAccountExists(name)) {
+                throw new AccountAlreadyExistsException(String.format(IConstant.ACCOUNT_ALREADY_EXISTS, name));
+            }
+
+            Account.AccountBuilder accountBuilder = new Account.AccountBuilder().builder()
+                    .withAccountHolder(name)
+                    .withBalance(amount)
+                    .withAccountType(type)
+                    .withDeleted(false);
             Account account = new Account(accountBuilder);
             account = accountRepository.saveAndFlush(account);
             transactionRepository.save(getTransaction(account, "INITIAL CREDIT", amount));
-            return account;
+
+            return mapToAccountResponse(account);
         } catch (Exception e) {
             throw e;
         }
+    }
+
+    private AccountResponse mapToAccountResponse(Account account) {
+        return new AccountResponse(account.getId(), account.getAccountHolder(), account.getBalance(), account.getAccountType(), account.isDeleted(), account.getCreatedAt());
     }
 
     private Transaction getTransaction(Account account, String transactionType, BigDecimal amount) {
@@ -69,13 +89,13 @@ public class WalletService {
 
     /**
      * Fetches the account detail based on the account name if exists
-     * @param name Checks if account exists for the provided name
+     * @param accountId Checks if account exists for the provided accountId
      * @return Returns the account found
      * @throws AccountNotFoundException Exception is thrown if account not found
      */
-    public Account fetchAccount(final String name) throws AccountNotFoundException {
-        return accountRepository.findByAccountHolder(name)
-                .orElseThrow(() -> new AccountNotFoundException(String.format(IConstant.ACCOUNT_NOT_FOUND, name)));
+    public AccountResponse fetchAccount(final Long accountId) throws AccountNotFoundException {
+        return accountRepository.findById(accountId).map(this::mapToAccountResponse)
+                .orElseThrow(() -> new AccountNotFoundException(IConstant.ACCOUNT_NOT_FOUND_WITH_ID));
     }
 
     /**
@@ -96,7 +116,7 @@ public class WalletService {
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
     @Transactional
-    public void transferFunds(final Account account, final Account targetAccount, final BigDecimal amount) throws SelfTransferException, SQLException, InsufficientBalanceException {
+    public void transferFunds(final Account account, final Account targetAccount, final BigDecimal amount) throws SelfTransferException, InsufficientBalanceException, AccountNotFoundException {
         try {
             if (account.getAccountHolder().equals(targetAccount.getAccountHolder())) {
                 throw new SelfTransferException(IConstant.SELF_TRANSFER_ERROR);
@@ -120,9 +140,9 @@ public class WalletService {
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
     @Transactional
-    public void addMoney(BigDecimal money, Long accountId, boolean transfer) {
+    public void addMoney(BigDecimal money, Long accountId, boolean transfer) throws AccountNotFoundException {
         try {
-            BigDecimal currentBalance = accountRepository.getBalanceById(accountId);
+            BigDecimal currentBalance = accountRepository.getBalanceById(accountId).orElseThrow(() -> new AccountNotFoundException(IConstant.ACCOUNT_NOT_FOUND_WITH_ID));
             currentBalance = currentBalance.add(money);
             accountRepository.updateBalance(accountId, currentBalance);
             if (!transfer) {
@@ -143,9 +163,9 @@ public class WalletService {
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
     @Transactional
-    public void withdrawMoney(BigDecimal money, Long accountId, boolean transfer) throws InsufficientBalanceException {
+    public void withdrawMoney(BigDecimal money, Long accountId, boolean transfer) throws InsufficientBalanceException, AccountNotFoundException {
         try {
-            BigDecimal currentBalance = accountRepository.getBalanceById(accountId);
+            BigDecimal currentBalance = accountRepository.getBalanceById(accountId).orElseThrow(() -> new AccountNotFoundException(IConstant.ACCOUNT_NOT_FOUND_WITH_ID));
             if (!(currentBalance.subtract(money).compareTo(BigDecimal.ZERO) < 0)) {
                 currentBalance = currentBalance.subtract(money);
                 accountRepository.updateBalance(accountId, currentBalance);
@@ -167,8 +187,8 @@ public class WalletService {
      * @param accountId accountId of the account holder
      * @return Returns the balance in the account
      */
-    public BigDecimal getAccountBalance(final Long accountId) {
-        return accountRepository.getBalanceById(accountId);
+    public BigDecimal getAccountBalance(final Long accountId) throws AccountNotFoundException {
+        return accountRepository.getBalanceById(accountId).orElseThrow(() -> new AccountNotFoundException(IConstant.ACCOUNT_NOT_FOUND_WITH_ID));
     }
 
     /**
