@@ -11,12 +11,11 @@ import com.bank.api.repository.TransactionRepository;
 import com.bank.api.util.IConstant;
 import com.bank.api.exception.AccountNotFoundException;
 import com.bank.api.model.Account;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,7 +35,7 @@ public class WalletService {
      * @return Returns the account created
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public AccountResponse createAccount(final AccountRequest request) throws AccountAlreadyExistsException {
         try {
             String name = request.accountHolder();
@@ -110,8 +109,8 @@ public class WalletService {
      * @throws InsufficientBalanceException Thrown when balance is insufficient
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
-    @Transactional
-    public void transferFunds(final TransferFundsRequest request) throws SelfTransferException, InsufficientBalanceException, AccountNotFoundException {
+    @Transactional(rollbackFor = Exception.class)
+    public BigDecimal transferFunds(final TransferFundsRequest request) throws SelfTransferException, InsufficientBalanceException, AccountNotFoundException {
         try {
             if (request.accountId().equals(request.targetAccountId())) {
                 throw new SelfTransferException(IConstant.SELF_TRANSFER_ERROR);
@@ -119,11 +118,10 @@ public class WalletService {
             Account account = accountRepository.findById(request.accountId()).orElseThrow(() -> new AccountNotFoundException(IConstant.ACCOUNT_NOT_FOUND_WITH_ID));;
             Account targetAccount = accountRepository.findById(request.targetAccountId()).orElseThrow(() -> new AccountNotFoundException(IConstant.ACCOUNT_NOT_FOUND_WITH_ID));;
 
-            withdrawMoney(account, request.amount(), true);
-            transactionRepository.save(getTransaction(account, "Sent to " + targetAccount.getAccountHolder(), request.amount()));
+            withdrawMoney(account, request.amount(), "TRANSFER_TO: " + targetAccount.getAccountHolder());
+            addMoney(targetAccount, request.amount(), "TRANSFER_FROM: " + account.getAccountHolder());
 
-            addMoney(targetAccount, request.amount(), true);
-            transactionRepository.save(getTransaction(targetAccount, "Received from " + account.getAccountHolder(), request.amount()));
+            return account.getBalance();
         } catch (Exception e) {
             throw e;
         }
@@ -132,56 +130,54 @@ public class WalletService {
     /**
      * Adds money to the account if the amount is positive
      * @param request DTO containing the amount to be added and accountId of the account holder
-     * @param transfer Whether it is a transfer request or not
+     * @param transferDesc transfer description
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
-    @Transactional
-    public void addMoney(TransferRequest request, boolean transfer) throws AccountNotFoundException {
+    @Transactional(rollbackFor = Exception.class)
+    public BigDecimal addMoney(TransferRequest request, String transferDesc) throws AccountNotFoundException {
         try {
             Account account = accountRepository.findById(request.accountId()).orElseThrow(() -> new AccountNotFoundException(IConstant.ACCOUNT_NOT_FOUND_WITH_ID));;
-            addMoney(account, request.amount(), transfer);
+            return addMoney(account, request.amount(), transferDesc);
         } catch (Exception e) {
             throw e;
         }
     }
 
-    @Transactional
-    public void addMoney(Account account, BigDecimal amount, boolean transfer) {
+    @Transactional(rollbackFor = Exception.class)
+    public BigDecimal addMoney(Account account, BigDecimal amount, String transferDesc) {
         BigDecimal currentBalance = account.getBalance();
         currentBalance = currentBalance.add(amount);
-        accountRepository.updateBalance(account.getId(), LocalDateTime.now(), currentBalance);
-        if (!transfer) {
-            transactionRepository.save(getTransaction(account, "CREDITED", amount));
-        }
+        account.setBalance(currentBalance);
+        transactionRepository.save(getTransaction(account, transferDesc, amount));
+        return currentBalance;
     }
 
     /**
      * Withdraws money from the account if withdrawal possible
      * @param request DTO containing the amount to be withdrawn and accountId of the account holder
-     * @param transfer Whether it is a transfer request or not
+     * @param transferDesc transfer description
      * @throws InsufficientBalanceException Thrown when balance is insufficient
      * @throws SQLException Thrown exception when some issue in interacting with db
      */
-    @Transactional
-    public void withdrawMoney(TransferRequest request, boolean transfer) throws InsufficientBalanceException, AccountNotFoundException {
+    @Transactional(rollbackFor = Exception.class)
+    public BigDecimal withdrawMoney(TransferRequest request, String transferDesc) throws InsufficientBalanceException, AccountNotFoundException {
         try {
             Account account = accountRepository.findById(request.accountId()).orElseThrow(() -> new AccountNotFoundException(IConstant.ACCOUNT_NOT_FOUND_WITH_ID));;
-            withdrawMoney(account, request.amount(), transfer);
+            return withdrawMoney(account, request.amount(), transferDesc);
         } catch (Exception e) {
             throw e;
         }
     }
 
-    @Transactional
-    public void withdrawMoney(Account account, BigDecimal amount, boolean transfer) throws InsufficientBalanceException, AccountNotFoundException {
+    @Transactional(rollbackFor = Exception.class)
+    public BigDecimal withdrawMoney(Account account, BigDecimal amount, String transferDesc) throws InsufficientBalanceException, AccountNotFoundException {
         try {
             BigDecimal currentBalance = account.getBalance();
             if (!(currentBalance.subtract(amount).compareTo(BigDecimal.ZERO) < 0)) {
                 currentBalance = currentBalance.subtract(amount);
-                accountRepository.updateBalance(account.getId(), LocalDateTime.now(), currentBalance);
-                if (!transfer) {
-                    transactionRepository.save(getTransaction(account, "DEBITED", amount));
-                }
+                account.setBalance(currentBalance);
+                transactionRepository.save(getTransaction(account, transferDesc, amount));
+                return currentBalance;
             } else {
                 throw new InsufficientBalanceException(String.format(IConstant.INSUFFICIENT_BALANCE, currentBalance));
             }
@@ -205,7 +201,6 @@ public class WalletService {
      * @return list of transactions of the account holder
      */
     public List<TransactionDTO> getTransactionHistory(final Long accountId) {
-        // TODO : need to check why 2 APIs are called or should I use nativequery
         List<Transaction> transactions = transactionRepository.findAllTransactionByAccountId(accountId);
         return transactions.stream().map(this::mapToDTO).collect(Collectors.toList());
     }

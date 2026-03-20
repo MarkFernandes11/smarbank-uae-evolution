@@ -10,6 +10,7 @@ import com.bank.api.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -24,18 +25,18 @@ public class TransactionController {
     }
 
     @PostMapping(value = "/transfer/add-funds")
-    public void addFunds(@RequestBody TransferRequest transferRequest) throws AccountNotFoundException {
-        walletService.addMoney(transferRequest, false);
+    public BigDecimal addFunds(@RequestBody TransferRequest transferRequest) throws AccountNotFoundException {
+        return walletService.addMoney(transferRequest, "CREDITED");
     }
 
     @PostMapping(value = "/transfer/withdraw-funds")
-    public void withdrawFunds(@RequestBody TransferRequest request) throws InsufficientBalanceException, AccountNotFoundException {
-        walletService.withdrawMoney(request, false);
+    public BigDecimal withdrawFunds(@RequestBody TransferRequest request) throws InsufficientBalanceException, AccountNotFoundException {
+        return walletService.withdrawMoney(request, "DEBITED");
     }
 
     @PostMapping(value = "/transfer/transfer-funds")
-    public void transferFunds(@RequestBody TransferFundsRequest request) throws InsufficientBalanceException, SelfTransferException, AccountNotFoundException {
-        walletService.transferFunds(request);
+    public BigDecimal transferFunds(@RequestBody TransferFundsRequest request) throws InsufficientBalanceException, SelfTransferException, AccountNotFoundException {
+        return walletService.transferFunds(request);
     }
 
     @GetMapping(value = "/transactions/{accountId}")
