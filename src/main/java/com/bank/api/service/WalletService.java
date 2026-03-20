@@ -205,4 +205,8 @@ public class WalletService {
     private TransactionDTO mapToDTO(Transaction transaction) {
         return new TransactionDTO(transaction.getAmount(), transaction.getTransactionType(), transaction.getTimeStamp());
     }
+
+    public void closeAccount(Long accountId) {
+        accountRepository.deleteById(accountId);
+    }
 }

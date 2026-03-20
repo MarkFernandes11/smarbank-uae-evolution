@@ -43,5 +43,8 @@ public class AccountController {
         return walletService.getAccountBalance(accountId);
     }
 
-
+    @DeleteMapping(value = "/{accountId}")
+    public void closeAccount(@PathVariable Long accountId) {
+        walletService.closeAccount(accountId);
+    }
 }
