@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +26,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE accounts SET balance = :newBalance WHERE id = :accountId", nativeQuery = true)
-    int updateBalance(@Param("accountId") Long accountId, @Param("newBalance") BigDecimal newBalance);
+    @Query(value = "UPDATE accounts SET balance = :newBalance, updated_at = :updatedAt WHERE id = :accountId and deleted = false", nativeQuery = true)
+    int updateBalance(@Param("accountId") Long accountId, @Param("updatedAt") LocalDateTime updatedAt, @Param("newBalance") BigDecimal newBalance);
 }

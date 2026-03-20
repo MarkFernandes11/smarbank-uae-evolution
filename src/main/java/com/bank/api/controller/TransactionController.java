@@ -1,6 +1,8 @@
 package com.bank.api.controller;
 
 import com.bank.api.dto.TransactionDTO;
+import com.bank.api.dto.TransferFundsRequest;
+import com.bank.api.dto.TransferRequest;
 import com.bank.api.exception.AccountNotFoundException;
 import com.bank.api.exception.InsufficientBalanceException;
 import com.bank.api.exception.SelfTransferException;
@@ -8,7 +10,6 @@ import com.bank.api.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -22,19 +23,19 @@ public class TransactionController {
         this.walletService = walletService;
     }
 
-    @GetMapping(value = "/transfer/add-funds")
-    public void addFunds(@RequestParam BigDecimal money, Long accountId) throws AccountNotFoundException {
-        walletService.addMoney(money, accountId, false);
+    @PostMapping(value = "/transfer/add-funds")
+    public void addFunds(@RequestBody TransferRequest transferRequest) throws AccountNotFoundException {
+        walletService.addMoney(transferRequest, false);
     }
 
-    @GetMapping(value = "/transfer/withdraw-funds")
-    public void withdrawFunds(@RequestParam BigDecimal money, Long accountId) throws InsufficientBalanceException, AccountNotFoundException {
-        walletService.withdrawMoney(money, accountId, false);
+    @PostMapping(value = "/transfer/withdraw-funds")
+    public void withdrawFunds(@RequestBody TransferRequest request) throws InsufficientBalanceException, AccountNotFoundException {
+        walletService.withdrawMoney(request, false);
     }
 
-    @GetMapping(value = "/transfer/transfer-funds")
-    public void transferFunds(@RequestParam BigDecimal money, Long accountId) throws InsufficientBalanceException, SelfTransferException, AccountNotFoundException {
-        walletService.transferFunds(null, null, money);
+    @PostMapping(value = "/transfer/transfer-funds")
+    public void transferFunds(@RequestBody TransferFundsRequest request) throws InsufficientBalanceException, SelfTransferException, AccountNotFoundException {
+        walletService.transferFunds(request);
     }
 
     @GetMapping(value = "/transactions/{accountId}")

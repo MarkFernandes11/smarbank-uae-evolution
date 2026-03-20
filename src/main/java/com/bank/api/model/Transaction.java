@@ -28,6 +28,8 @@ public class Transaction {
     @JoinColumn(name = "account_id")
     private Account account;
 
+    public Transaction() {}
+
     public Transaction(TransactionBuilder builder) {
         this.id = builder.id;
         this.amount = builder.amount;
