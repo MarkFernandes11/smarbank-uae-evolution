@@ -42,4 +42,5 @@ How to Run : First execute -> javac Main.java followed by -> java Main
 - Got tomcat server running with database initialized.
 - Fixed and modified the logic for existing services to work with existing spring boot code structure.
 - Exceptions handled globally to avoid 500 error code.
+- Added swagger dependency to get the Spring Doc http://localhost:9090/swagger-ui/index.html . 
 - TODO : Documentation to be updated 

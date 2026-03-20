@@ -5,9 +5,9 @@ import com.bank.api.dto.TransferFundsRequest;
 import com.bank.api.dto.TransferRequest;
 import com.bank.api.exception.AccountNotFoundException;
 import com.bank.api.exception.InsufficientBalanceException;
-import com.bank.api.exception.NegativeOrZeroAmountException;
 import com.bank.api.exception.SelfTransferException;
 import com.bank.api.service.WalletService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,17 +26,17 @@ public class TransactionController {
     }
 
     @PostMapping(value = "/transfer/add-funds")
-    public BigDecimal addFunds(@RequestBody TransferRequest transferRequest) throws AccountNotFoundException, NegativeOrZeroAmountException {
+    public BigDecimal addFunds(@Valid  @RequestBody TransferRequest transferRequest) throws AccountNotFoundException {
         return walletService.addMoney(transferRequest, "CREDITED");
     }
 
     @PostMapping(value = "/transfer/withdraw-funds")
-    public BigDecimal withdrawFunds(@RequestBody TransferRequest request) throws InsufficientBalanceException, AccountNotFoundException, NegativeOrZeroAmountException {
+    public BigDecimal withdrawFunds(@Valid @RequestBody TransferRequest request) throws InsufficientBalanceException, AccountNotFoundException {
         return walletService.withdrawMoney(request, "DEBITED");
     }
 
     @PostMapping(value = "/transfer/transfer-funds")
-    public BigDecimal transferFunds(@RequestBody TransferFundsRequest request) throws InsufficientBalanceException, SelfTransferException, AccountNotFoundException, NegativeOrZeroAmountException {
+    public BigDecimal transferFunds(@Valid @RequestBody TransferFundsRequest request) throws InsufficientBalanceException, SelfTransferException, AccountNotFoundException {
         return walletService.transferFunds(request);
     }
 
